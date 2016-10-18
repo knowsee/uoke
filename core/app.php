@@ -3,8 +3,8 @@ define('IN_UOKE', TRUE);
 defined('MAIN_PATH') or define('MAIN_PATH', dirname(__FILE__).'/');
 defined('UOKE_DEBUG') or define('UOKE_DEBUG', false);
 define('SYSTEM_PATH', dirname(__FILE__).'/');
-defined('LOAD_CONFIG') or define('LOAD_CONFIG', SYSTEM_PATH.'config/');
-define('LOAD_SYSTEM_CONFIG', SYSTEM_PATH.'config/');
+defined('LOAD_CONFIG') or define('LOAD_CONFIG', SYSTEM_PATH.'Config/');
+define('LOAD_SYSTEM_CONFIG', SYSTEM_PATH.'Config/');
 define('ICONV_ENABLE', function_exists('iconv'));
 define('MB_ENABLE', function_exists('mb_convert_encoding'));
 define('EXT_OBGZIP', function_exists('ob_gzhandler'));
@@ -81,7 +81,7 @@ class app {
     }
 
     private static function makeAppConfig() {
-        $cacheMainFile = getCacheFile(MAIN_PATH.'data/system/runtime~');
+        $cacheMainFile = getCacheFile(MAIN_PATH.'Data/system/runtime~');
         if(!$cacheMainFile) {
             $cache = array();
             $systemConfigFile = static::makeSystemConfig();
@@ -92,25 +92,25 @@ class app {
                 LOAD_CONFIG . 'app.php',
                 LOAD_CONFIG . 'db.php',
                 LOAD_CONFIG . 'cache.php',
-            ), MAIN_PATH.'data/system/runtime~', $systemConfig);
-            $cacheMainFile = getCacheFile(MAIN_PATH.'data/system/runtime~');
+            ), MAIN_PATH.'Data/system/runtime~', $systemConfig);
+            $cacheMainFile = getCacheFile(MAIN_PATH.'Data/system/runtime~');
         }
         return $cacheMainFile;
     }
 
     private static function makeSystemConfig() {
-        $cacheMainFile = getCacheFile(SYSTEM_PATH.'data/system/runtime~');
+        $cacheMainFile = getCacheFile(SYSTEM_PATH.'Data/system/runtime~');
         if(!$cacheMainFile) {
             $systemConfig['cacheName'] = '_config';
-            $cacheFile = getCacheFile(SYSTEM_PATH.'data/system/runtime~');
+            $cacheFile = getCacheFile(SYSTEM_PATH.'Data/system/runtime~');
             if($cacheFile == false) {
                 setCacheFile(array(
                     LOAD_SYSTEM_CONFIG . 'app.php',
                     LOAD_SYSTEM_CONFIG . 'db.php',
                     LOAD_SYSTEM_CONFIG . 'cache.php',
-                ), SYSTEM_PATH.'data/system/runtime~', $systemConfig);
+                ), SYSTEM_PATH.'Data/system/runtime~', $systemConfig);
             }
-            $cacheMainFile = getCacheFile(SYSTEM_PATH.'data/system/runtime~');
+            $cacheMainFile = getCacheFile(SYSTEM_PATH.'Data/system/runtime~');
         }
         return $cacheMainFile;
     }
