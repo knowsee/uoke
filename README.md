@@ -2,7 +2,7 @@ uoke 4
 ===================
 
 
-Hey!  **Uoke**[^stackedit]. This is php framework with php 7
+Hey!  **Uoke**. This is php framework with php 7
 
 ----------
 
