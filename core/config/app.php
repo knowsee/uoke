@@ -15,6 +15,13 @@ $_config['gpc'] = array(
     'clean' => '',
     'systemString' => '',
 );
+$_config['defaultAction'] = array(
+    'siteIndex' => array(
+        'module' => '',
+        'action' => '',
+    ),
+    'moduleIndex' => 'Index',
+);
 $_config['urlRule'] = array(
     'type' => 2,
     'path' => array(

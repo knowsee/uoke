@@ -12,7 +12,9 @@ define('UNIXTIME', time());
 define('IS_WIN', strstr(PHP_OS, 'WIN') ? 1 : 0 );
 define('IS_CGI', (0 === strpos(PHP_SAPI, 'cgi') || false !== strpos(PHP_SAPI, 'fcgi')) ? 1 : 0 );
 define('IS_CLI', PHP_SAPI == 'cli' ? 1 : 0);
-define('GLOBAL_KEY', 'uoke_');
+define('GLOBAL_KEY', 'UOKE_');
+
+
 
 require SYSTEM_PATH.'core.php';
 Core::start();
@@ -25,7 +27,6 @@ class app {
         if(empty(static::$coreConfig)) {
             static::loadConfig();
         }
-        define('CONTROLLER', '\Action\Index');
         try {
             try {
                 $url = self::createObject('\Factory\UriRule');
@@ -33,14 +34,37 @@ class app {
                 var_export($e->getMessage());
             }
             list($module, $action) = $url->getModel();
-            $controller = self::createObject('\\Action\\'.$module);
-            if(method_exists($controller, $action)) {
-                $controller->$action();
-            } else {
-                throw new \Uoke\uError(E_ERROR,'Action not found');
-            }
+            self::goIndex($module,$action);
         } catch (\Uoke\uError $e) {
-            var_dump($e->getMessage());
+            UOKE_DEBUG && var_dump($e->getMessage());
+        }
+    }
+
+    private static function goIndex($module, $action) {
+        if(empty($module)) {
+            self::goDefaultPage();
+            return true;
+        } else {
+            define('CONTROLLER', '\\Action\\'.$module);
+            self::runAction($module, $action);
+            return true;
+        }
+    }
+
+    private static function goDefaultPage() {
+        $defaultAction = static::$coreConfig['defaultAction']['siteIndex'];
+        runAction($defaultAction['module'], $defaultAction['action']);
+    }
+
+    private static function runAction($module, $action) {
+        $controller = self::createObject('\\Action\\'.$module);
+        if($action && method_exists($controller, $action)) {
+            $controller->$action();
+        } elseif(empty($action) && method_exists($controller, static::$coreConfig['defaultAction']['moduleIndex'])) {
+            $action = static::$coreConfig['defaultAction']['moduleIndex'];
+            $controller->$action();
+        } else {
+            throw new \Uoke\uError(E_ERROR,'Action not found');
         }
     }
 
@@ -130,7 +154,7 @@ class app {
                 return self::$classMap[$classKeyName];
             }
         } catch (\Uoke\uError $e) {
-            var_dump($e->getMessage());
+            UOKE_DEBUG && Evar_dump($e->getMessage());
         }
 
     }

@@ -30,7 +30,6 @@ class Core {
         if(!class_exists($className) && isset(self::$fileCache[$className]) == false) {
             $corePath = array('helper', 'adapter', 'factory', 'action', 'service');
             if(in_array(strtolower($classNameExplode[0]), $corePath)) {
-
                 $fileClass = SYSTEM_PATH.implode('/',$classNameExplode);
             } else {
                 $className = str_replace('\\', '/', $className);
@@ -40,11 +39,10 @@ class Core {
                 if(file_exists_case($fileClass.'.php')) {
                     self::autoLoadFileCache($className, $fileClass.'.php');
                 } else {
-                    var_export($fileClass);
                     throw new Exception($className.' not found, Get File: '.$fileClass.'.php');
                 }
             } catch(Exception $e) {
-                UOKE_DEBUG && var_dump($e->getMessage());
+                UOKE_DEBUG && var_dump(showFileToEve($e->getMessage()));
             }
         }
     }

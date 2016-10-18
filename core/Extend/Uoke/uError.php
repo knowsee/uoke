@@ -34,7 +34,7 @@ class uError extends \ErrorException {
         }
     }
 
-    public function getName() {
+    private function getName() {
         static $names = [
             E_COMPILE_ERROR => 'PHP Compile Error',
             E_COMPILE_WARNING => 'PHP Compile Warning',
@@ -53,10 +53,6 @@ class uError extends \ErrorException {
             E_WARNING => 'PHP Warning',
         ];
         return isset($names[$this->getCode()]) ? $names[$this->getCode()] : 'Error['.$this->getCode().']';
-    }
-
-    private static function inFile($file) {
-        return stripslashes($file);
     }
 
 }

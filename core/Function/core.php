@@ -34,6 +34,10 @@ function getCacheFile($cacheFile) {
     }
 }
 
+function showFileToEve($file) {
+    return str_replace(array(SYSTEM_PATH, MAIN_PATH), '', $file);
+}
+
 function file_exists_case($filename) {
     if (is_file($filename)) {
         if (IS_WIN) {
