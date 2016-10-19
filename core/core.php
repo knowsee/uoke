@@ -28,7 +28,7 @@ class Core {
     public static function autoLoad($className) {
         $classNameExplode = explode('\\', $className);
         if(!class_exists($className) && isset(self::$fileCache[$className]) == false) {
-            $corePath = array('helper', 'adapter', 'factory', 'action', 'service');
+            $corePath = array('helper', 'adapter', 'factory', 'action', 'services');
             if(in_array(strtolower($classNameExplode[0]), $corePath)) {
                 $fileClass = SYSTEM_PATH.implode('/',$classNameExplode);
             } else {

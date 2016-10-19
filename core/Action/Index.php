@@ -1,17 +1,10 @@
 <?php
 namespace Action;
-use Factory\Db, Uoke\Controller;
+use Uoke\Controller, Services\IndexList;
 class Index extends Controller{
-
-    public function __construct($m, $t) {
-        echo $m.$t;
-    }
+    public function __construct() {}
 
     public function Index() {
-        var_dump(array('duing'));
-    }
-    
-    private function db() {
-        return Db::getInstance(array('ukey' => 'ip'));
+        echo json_encode(IndexList::getMyList());
     }
 }

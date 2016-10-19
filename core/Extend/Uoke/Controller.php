@@ -2,6 +2,9 @@
 namespace Uoke;
 use Uoke\Request\Client, Uoke\Request\Server;
 class Controller {
+    /**
+     *  Message redirect time (s)
+     */
     const MESSAGE_SECOND = 3;
 
     /**
@@ -65,7 +68,6 @@ class Controller {
      * @param array $args
      */
     public function excUrl($moduleUrl, $args = array()) {
-
     }
 
     private function callClass($name, $arguments = '') {

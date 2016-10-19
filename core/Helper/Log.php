@@ -13,7 +13,7 @@ class Log {
         self::$_logWriteObj = array('begin' => UNIXTIME);
     }
 
-    public static function writeLog(string $message, string $type = 'php', string $level = self::NOTICE) {
+    public static function writeLog($message, string $type = 'php', string $level = self::NOTICE) {
         self::$_logMessage[$type][UNIXTIME][$level][] = $message;
     }
 
