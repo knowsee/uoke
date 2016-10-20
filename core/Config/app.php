@@ -37,3 +37,4 @@ $_config['urlRule'] = array(
         3 => '\Factory\Uri\RewriteRule'
     )
 );
+$_config['templateDir'] = 'tmp/'; //{APP_DIR}/core/{YOUR TEMPLATE DIR NAME}}

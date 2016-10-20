@@ -2,6 +2,7 @@
 namespace Uoke;
 use Uoke\Request\Client, Uoke\Request\Server;
 class Controller {
+    private $view = array();
     /**
      *  Message redirect time (s)
      */
@@ -28,10 +29,18 @@ class Controller {
      * @param $moduleUrl
      * @param array $args
      * @param int $second
-     * @param string $message
      */
-    public function redirect($moduleUrl, $args = array(), $second = self::MESSAGE_SECOND, $message = '') {
-
+    public function redirect($moduleUrl, $args = array(), $second = self::MESSAGE_SECOND) {
+        $pathUrl = '';
+        if(!isUrl($moduleUrl)) {
+            /**
+             * Module Url support waiting
+             */
+            $pathUrl = $this->excUrl($moduleUrl, $args);
+        }
+        $second && $this->callClass('server')->setSleep($second);
+        header("Location: ".$this->callClass('client')->getServerName().$pathUrl);
+        if(function_exists('fastcgi_finish_request')) fastcgi_finish_request();
     }
 
     /**
@@ -61,6 +70,21 @@ class Controller {
      */
     public function showMsg($message, $moduleUrl, $template = '', $second = self::MESSAGE_SECOND) {
 
+    }
+
+    public function view($name, $value = '') {
+        if (is_array($name)) {
+            foreach ($name as $viewKey => $viewData) {
+                $this->view[$viewKey] = $viewData;
+            }
+        } else {
+            $this->view[$name] = $value;
+        }
+    }
+
+    public function display($filename) {
+        extract($this->view);
+        require MAIN_PATH . CONFIG('templateDir') . $filename . '.php';
     }
 
     /**

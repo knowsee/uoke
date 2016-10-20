@@ -5,6 +5,8 @@ class Index extends Controller{
     public function __construct() {}
 
     public function Index() {
-        echo json_encode(IndexList::getMyList());
+        $a = json_encode(IndexList::getMyList());
+        $this->view('a', $a);
+        $this->display('test');
     }
 }

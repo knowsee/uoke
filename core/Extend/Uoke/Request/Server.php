@@ -55,6 +55,7 @@ class Server {
         if($time > 1) {
             sleep($time);
         } elseif($time > 0 && $time < 1) {
+            $time = $time*1000000;
             usleep($time);
         } else {
             new Exception('Time is not real time', E_PARSE);
