@@ -28,7 +28,11 @@ class uError extends \ErrorException {
                 'errorFile' => $this->getFile(),
                 'errorLine' => $this->getLine(),
                 'errorTrace' => $trace);
-            echo '<script>console.log('.json_encode($message, JSON_UNESCAPED_UNICODE).')</script>';
+            if(IS_CLI) {
+                var_dump($message);
+            } else {
+                echo '<script>console.log('.json_encode($message, JSON_UNESCAPED_UNICODE).')</script>';
+            }
             error_log(var_export($message, true));
             exit('Uoke back to the  ['.$this->getName().'] door');
         }

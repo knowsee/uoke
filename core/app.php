@@ -14,8 +14,6 @@ define('IS_CGI', (0 === strpos(PHP_SAPI, 'cgi') || false !== strpos(PHP_SAPI, 'f
 define('IS_CLI', PHP_SAPI == 'cli' ? 1 : 0);
 define('GLOBAL_KEY', 'UOKE_');
 
-
-
 require SYSTEM_PATH.'core.php';
 Core::start();
 class app {
@@ -31,7 +29,7 @@ class app {
             try {
                 $url = self::createObject('\Factory\UriRule');
             } catch (\Uoke\uError $e) {
-                var_export($e->getMessage());
+                var_dump($e->getMessage());
             }
             list($module, $action) = $url->getModel();
             self::goIndex($module,$action);
@@ -45,15 +43,20 @@ class app {
             self::goDefaultPage();
             return true;
         } else {
-            define('CONTROLLER', '\\Action\\'.$module);
-            self::runAction($module, $action);
+            if(is_array($module)) {
+                define('CONTROLLER', '\\Action\\'.implode('_', $module));
+                self::runAction(implode('_', $module), $action);
+            } else {
+                define('CONTROLLER', '\\Action\\'.$module);
+                self::runAction($module, $action);
+            }
             return true;
         }
     }
 
     private static function goDefaultPage() {
         $defaultAction = static::$coreConfig['defaultAction']['siteIndex'];
-        runAction($defaultAction['module'], $defaultAction['action']);
+        self::runAction($defaultAction['module'], $defaultAction['action']);
     }
 
     private static function runAction($module, $action) {

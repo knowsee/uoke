@@ -12,8 +12,13 @@ class PathInfoRule implements UriAdapter {
 
     public function __construct() {
         $this->_Client = Client::getInstance();
-        $this->paramUri = $this->_Client->getWebPathInfo();
-        $this->paramGet = $this->_Client->get();
+        if(IS_CLI) {
+            $this->paramGet = $this->_Client->getCli();
+            $this->paramUri = $this->paramGet[0];
+        } else {
+            $this->paramUri = $this->_Client->getWebPathInfo();
+            $this->paramGet = $this->_Client->get();
+        }
         $this->rule = CONFIG('urlRule/path');
     }
 
@@ -29,28 +34,39 @@ class PathInfoRule implements UriAdapter {
         // TODO: Implement setRule() method.
     }
 
+    public function makeUrl($param, $urlName = '') {
+        $ruleString = $this->findRuleKey(array($param['m'], $param['a']));
+
+    }
+
     private function handleUrl() {
         $urlPathInfo = explode('/', $this->paramUri);
         for ($u = 1; $u < count($urlPathInfo); $u++) {
-            if ($u < 3) {
-                $module[] = $urlPathInfo[$u];
+            if($u == 1) {
+                $module[0] = explode('_', $urlPathInfo[$u]);
+            } elseif ($u == 2) {
+                $module[1] = $urlPathInfo[$u];
             } else {
                 $modulePathUrl[] = $urlPathInfo[$u];
             }
         }
-        $this->findRule($module, $modulePathUrl);
+        $this->parseRule($module, $modulePathUrl);
         return $module;
     }
 
-    private function findRule($path, $paramValue) {
-        $pathKey = implode('_', $path);
+    private function findRuleKey($path) {
+        $pathKey = implode('_', $path[0]).'_'.$path[1];
         if(isset($this->rule[$pathKey])) {
-            $ruleString = $this->rule[$pathKey];
+            return $this->rule[$pathKey];
         }
-        $rule = explode('/', $ruleString);
-        for ($u = 1; $u < count($rule); $u++) {
+    }
+
+    private function parseRule($path, $paramValue) {
+        $ruleString = $this->findRuleKey($path);
+        $rule = array_filter(explode('/', $ruleString));
+        for ($u = 1; $u <= count($rule); $u++) {
             if($paramValue[($u-1)]) {
-                $this->_Client->setQueryKeyParam([$rule[$u]], $paramValue[($u-1)]);
+                $this->_Client->setQueryKeyParam($rule[$u], $paramValue[($u-1)]);
             }
         }
 

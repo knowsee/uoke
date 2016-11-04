@@ -219,6 +219,30 @@ class Client {
             return $this->getQueryParam($name, $defaultValue);
         }
     }
+
+    private $_cliParams = null;
+    private $_cliScript = null;
+
+    public function getCli($name = null, $defaultValue = null) {
+        global $argv;
+        $this->_cliScript = $argv[0];
+        unset($argv[0]);
+        resetArray($argv);
+        $this->_cliParams = $argv;
+        if($name == null) {
+            return $this->_cliParams;
+        } else {
+            return $this->getCliParams($name, $defaultValue);
+        }
+    }
+
+    private function getCliParams($name, $defaultValue = null) {
+        if($defaultValue) {
+            $this->_cliParams[$name] = $defaultValue;
+        }
+        return isset($this->_cliParams[$name]) ? $this->_cliParams[$name] : $defaultValue;
+    }
+
     /**
      * Returns the named GET parameter value.
      * If the GET parameter does not exist, the second parameter passed to this method will be returned.

@@ -18,7 +18,9 @@ class Log {
     }
 
     public static function writeOtherLogFile(string $name, string $message) {
-        File::writeFile($message,
+        $msg = date('Y-m-d H:i:s', UNIXTIME)."\r\n\r\n";
+        $msg .= $message;
+        File::writeFile($msg,
             $name.'.txt',
             'data/log/autoMsg/',
             array('append' => true));

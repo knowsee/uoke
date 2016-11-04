@@ -135,3 +135,10 @@ function strdepack($string) {
         return unserialize($string);
     }
 }
+
+function resetArray(&$a) {
+    foreach($a as $val) {
+        $n[] = $val;
+    }
+    $a = $n;
+}

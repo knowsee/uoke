@@ -30,10 +30,11 @@ class Core {
         if(!class_exists($className) && isset(self::$fileCache[$className]) == false) {
             $corePath = array('helper', 'adapter', 'factory', 'action', 'services');
             if(in_array(strtolower($classNameExplode[0]), $corePath)) {
-                $fileClass = SYSTEM_PATH.implode('/',$classNameExplode);
+                $classFile = str_replace('_', '/', implode('/',$classNameExplode));
+                $fileClass = SYSTEM_PATH.$classFile;
             } else {
-                $className = str_replace('\\', '/', $className);
-                $fileClass = SYSTEM_PATH.'Extend/'.$className;
+                $classFile = str_replace('\\', '/', $className);
+                $fileClass = SYSTEM_PATH.'Extend/'.$classFile;
             }
             try {
                 if(file_exists_case($fileClass.'.php')) {
