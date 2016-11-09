@@ -22,6 +22,11 @@ interface Db {
     public function update($data, $longWait = false);
     public function delete();
     public function query($sql);
+    public function beginTransaction();
+    public function autocommitTransaction();
+    public function rollbackTransaction();
+    public function commitTransaction();
+
     public function handleSqlFunction($sqlTable, $sqlArray);
 
 }

@@ -14,6 +14,8 @@ class Client {
     private static $instance = null;
 
     private $_headers = null;
+    private $_cookieParams = null;
+    private $_cookieConfig = null;
     private $methodParam = '_methodPath'; //Is Test program method change field
 
 
@@ -53,8 +55,19 @@ class Client {
         }
     }
 
-    public function cookies($name = null, $value = null, $life = 86400) {
-
+    public function cookies($name = null, $value = null, $life = 0) {
+        if($this->_cookieConfig == null) {
+            $this->_cookieConfig = CONFIG('config');
+        }
+        if($life == null && $value == null) {
+            return $this->deleteCookies($name);
+        }
+        if($value) {
+            return $this->setCookie($name, $value, $life);
+        }
+        if($name && empty($value)) {
+            return $this->getCookie($name);
+        }
     }
 
     public function delete($name = null, $defaultValue = null) {
@@ -891,15 +904,35 @@ class Client {
             return [];
         }
     }
-    private $_cookieParams = null;
 
-    private function getCookieInSystem() {
-        if($this->_cookieParams == null) {
-            foreach($_COOKIE as $key => $value) {
 
-            }
+    public function getCookie($name) {
+        $cookiesName = $this->getCookieName($name);
+        if(isset($this->_cookieParams[$cookiesName])) {
+            return $this->_cookieParams[$cookiesName];
+        } elseif(isset($_COOKIE[$cookiesName])) {
+            $this->_cookieParams[$cookiesName] = $_COOKIE[$cookiesName];
         }
-        return $this->_cookieParams;
+        return $this->_cookieParams[$cookiesName];
+    }
+
+    public function getCookieName($name) {
+        $prefix = $this->_cookieConfig['prefix'];
+        return $prefix.$name;
+    }
+
+    public function setCookie($name, $value, $expire = null) {
+        $cookiesName = $this->getCookieName($name);
+        $domain = $this->_cookieConfig['domain'];
+        $expire = $expire ? $expire : $this->_cookieConfig['lifetime'];
+        $path = $this->_cookieConfig['path'];
+        $secure = $this->getIsSecureConnection() == true ? true : false;
+        $this->_cookieParams[$cookiesName] = $value;
+        return setcookie($cookiesName, $value, $expire, $path, $domain, $secure);
+    }
+
+    public function deleteCookies($name) {
+        return $this->setCookie($this->getCookieName($name), null, -3600);
     }
 
 }

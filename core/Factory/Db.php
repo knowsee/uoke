@@ -9,6 +9,9 @@ class Db {
     private static $instance;
     private $tableUniqueKey = '';
     private $tableCacheTime = 0;
+    /**
+     * @var \Adapter\Db
+     */
     private $dbLink = NULL;
     private $sqlTable = NULL;
     private $sqlAction = array();
@@ -24,11 +27,6 @@ class Db {
             self::$instance[$key] = new self($tableConfig);
         }
         return self::$instance[$key];
-    }
-
-    public function __call($name, $arguments)
-    {
-        return $this->runDb()->$name($arguments);
     }
 
     public function __construct(array $tableConfig = array())
@@ -140,8 +138,26 @@ class Db {
         return $this;
     }
 
+    public function beginTrans() {
+        $this->dbLink->beginTransaction();
+    }
+
+    public function autoTrans() {
+        $this->dbLink->autocommitTransaction();
+    }
+
+    public function commitTrans() {
+        $this->dbLink->commitTransaction();
+    }
+
+    public function rollbackTrans() {
+        $this->dbLink->rollbackTransaction();
+    }
+
     private function runDb() {
         $this->dbLink->handleSqlFunction($this->sqlTable, $this->sqlAction);
         return $this->dbLink;
     }
+
+
 }

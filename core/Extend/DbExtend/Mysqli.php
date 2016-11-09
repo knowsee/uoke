@@ -11,6 +11,8 @@ class Mysqli implements Db {
     private $link = NULL;
     private $config = array();
     private $sqlTable = NULL;
+    private $isTransaction = false;
+    private $isAutoTransaction = false;
     private $sqlAction = array(
         'where' => '',
         'groupby' => '',
@@ -164,6 +166,44 @@ class Mysqli implements Db {
             return false;
         }
         return $result;
+    }
+
+    public function beginTransaction($flag = null) {
+        $trans = $this->link->begin_transaction();
+        if($trans == true) {
+            $this->isTransaction = true;
+        } else {
+            throw new uError('Transaction can not open');
+        }
+    }
+    public function autocommitTransaction() {
+        if($this->isTransaction = false) {
+            throw new uError('Transaction is not open');
+        } else {
+            if($this->isAutoTransaction == false) {
+                $this->link->autocommit(true);
+                $this->isAutoTransaction = true;
+            } else {
+                $this->link->autocommit(false);
+                $this->isAutoTransaction = false;
+            }
+        }
+    }
+    public function rollbackTransaction() {
+        if($this->isTransaction = true) {
+            $this->link->rollback();
+            $this->isTransaction = false;
+        } else {
+            throw new uError('Transaction is not open');
+        }
+    }
+    public function commitTransaction() {
+        if($this->isTransaction = true) {
+            $this->link->commit();
+            $this->isTransaction = false;
+        } else {
+            throw new uError('Transaction is not open');
+        }
     }
 
     public function handleSqlFunction($sqlTable, $sqlArray) {
