@@ -1,6 +1,5 @@
 <?php
 if (!defined('IN_UOKE')) exit();
-
 /**
  * Class Core
  * 
@@ -13,7 +12,7 @@ class Core {
     public function __construct() {}
     
     public static function start() {
-        error_reporting(0);
+        error_reporting(E_ALL);
         spl_autoload_register('Core::autoload');
         register_shutdown_function('Core::appSystemError');
         set_error_handler('Core::errorException');
@@ -29,13 +28,7 @@ class Core {
         $classNameExplode = explode('\\', $className);
         if(!class_exists($className) && isset(self::$fileCache[$className]) == false) {
             $corePath = array('helper', 'adapter', 'factory', 'action', 'services');
-            if(in_array(strtolower($classNameExplode[0]), $corePath)) {
-                $classFile = str_replace('_', '/', implode('/',$classNameExplode));
-                $fileClass = SYSTEM_PATH.$classFile;
-            } else {
-                $classFile = str_replace('\\', '/', $className);
-                $fileClass = SYSTEM_PATH.'Extend/'.$classFile;
-            }
+            $fileClass = self::smartFileFound($classNameExplode, $corePath, $className);
             try {
                 if(file_exists_case($fileClass.'.php')) {
                     self::autoLoadFileCache($className, $fileClass.'.php');
@@ -46,6 +39,23 @@ class Core {
                 UOKE_DEBUG && var_dump(showFileToEve($e->getMessage()));
             }
         }
+    }
+
+    private static function smartFileFound($classNameExplode, $corePath, $className) {
+        if((MAIN_PATH !== SYSTEM_PATH) && in_array(strtolower($classNameExplode[1]), array('action', 'services'))) {
+            unset($classNameExplode[0]);
+            $classFile = str_replace('_', '/', implode('/',$classNameExplode));
+            $fileClass = MAIN_PATH.$classFile;
+        } else {
+            if(in_array(strtolower($classNameExplode[0]), $corePath)) {
+                $classFile = str_replace('_', '/', implode('/',$classNameExplode));
+                $fileClass = SYSTEM_PATH.$classFile;
+            } else {
+                $classFile = str_replace('\\', '/', $className);
+                $fileClass = SYSTEM_PATH.'Extend/'.$classFile;
+            }
+        }
+        return $fileClass;
     }
     /*
      * @param $class, $classFile

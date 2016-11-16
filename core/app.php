@@ -19,11 +19,17 @@ Core::start();
 class app {
 
     private static $classMap = array();
+    private static $CONTROLLER = null;
     public static $coreConfig = array();
 
     public static function run() {
         if(empty(static::$coreConfig)) {
             static::loadConfig();
+        }
+        if(SYSTEM_PATH !== MAIN_PATH) {
+            define('IS_APP', true);
+        } else {
+            define('IS_APP', false);
         }
         try {
             try {
@@ -44,11 +50,11 @@ class app {
             return true;
         } else {
             if(is_array($module)) {
-                define('CONTROLLER', '\\Action\\'.implode('_', $module));
-                self::runAction(implode('_', $module), $action);
+                self::$CONTROLLER = '\\Action\\'.implode('_', $module);
+                self::runAction($action);
             } else {
-                define('CONTROLLER', '\\Action\\'.$module);
-                self::runAction($module, $action);
+                self::$CONTROLLER = '\\Action\\'.$module;
+                self::runAction($action);
             }
             return true;
         }
@@ -56,11 +62,15 @@ class app {
 
     private static function goDefaultPage() {
         $defaultAction = static::$coreConfig['defaultAction']['siteIndex'];
+        self::$CONTROLLER = '\\Action\\'.implode('_', $defaultAction['module']);
         self::runAction($defaultAction['module'], $defaultAction['action']);
     }
 
-    private static function runAction($module, $action) {
-        $controller = self::createObject('\\Action\\'.$module);
+    private static function runAction($action) {
+        if(defined('APP_NAME')) {
+            self::$CONTROLLER = '\\'.APP_NAME.self::$CONTROLLER;
+        }
+        $controller = self::createObject(self::$CONTROLLER);
         if($action && method_exists($controller, $action)) {
             $controller->$action();
         } elseif(empty($action) && method_exists($controller, static::$coreConfig['defaultAction']['moduleIndex'])) {
@@ -81,6 +91,7 @@ class app {
             require $cacheMainFile;
         }
         static::$coreConfig = strdepack($cache);
+        header("Content-type: text/html; charset=utf-8");
     }
 
     private static function makeAppConfig() {
