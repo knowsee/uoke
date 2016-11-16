@@ -1,6 +1,5 @@
 <?php
 namespace Uoke\Request;
-use Adapter\Uri;
 use Helper\{cArray, Json};
 /**
  * Request/Client Uoke Extend

@@ -35,12 +35,12 @@ class Mysqli implements Db {
             $this->config = $config;
         }
         if (!$this->link) {
-            $this->link = new \mysqli($this->config['db_host'], $this->config['db_user'], $this->config['db_password'], $this->config['db_name']);
+            $this->link = new \mysqli($this->config['host'], $this->config['user'], $this->config['password'], $this->config['name']);
             try {
                 if ($this->link->connect_errno) {
                     throw new uError('Mysql Host Can\'t Connect', $this->link->connect_errno);
                 } else {
-                    $this->link->set_charset($this->config['db_charset']);
+                    $this->link->set_charset($this->config['charset']);
                 }
             } catch (uError $e) {
                 uError::setCoreError($e);

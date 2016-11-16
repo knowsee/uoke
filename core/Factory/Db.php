@@ -7,7 +7,7 @@ namespace Factory;
 class Db {
 
     private static $instance;
-    private $tableUniqueKey = '';
+    private $tablePK = '';
     private $tableCacheTime = 0;
     /**
      * @var \Adapter\Db
@@ -31,10 +31,10 @@ class Db {
 
     public function __construct(array $tableConfig = array())
     {
-        $this->tableUniqueKey = isset($tableConfig['ukey']) ? $tableConfig['ukey'] : 'id';
+        $this->tablePK = isset($tableConfig['pkey']) ? $tableConfig['pkey'] : 'id';
         $this->tableCacheTime = isset($tableConfig['cacheTime']) ? $tableConfig['cacheTime'] : 600;
         if(!$this->dbLink) {
-            $dbType = '\\DbExtend\\'.ucwords(CONFIG('db/db_type'));
+            $dbType = '\\DbExtend\\'.ucwords(CONFIG('db/type'));
             $this->dbLink = new $dbType(CONFIG('db'));
         }
         return $this;
@@ -61,13 +61,14 @@ class Db {
     }
 
     public function getById(string $id) : array {
-        $this->where(array($this->tableUniqueKey => $id));
+        $this->where(array($this->tablePK => $id));
         $return = $this->runDb()->getOne();
         return (array)$return;
     }
 
     public function insert(array $data, bool $return_insert_id = false, bool $replace = false) : int {
-		if(!is_array($data) || !$data) return false;
+		if(!is_array($data) || !$data)
+		    return 0;
         $returnArray = $this->runDb()->insert($data, $return_insert_id, $replace);
         return (int)$returnArray;
     }
@@ -78,7 +79,7 @@ class Db {
     }
 
     public function updateById(int $id, array $data, bool $longWait = false) {
-        $this->where(array($this->tableUniqueKey => $id));
+        $this->where(array($this->tablePK => $id));
         return $this->runDb()->update($data, $longWait);
     }
 
@@ -87,7 +88,7 @@ class Db {
     }
 
     public function deleteById(int $id) {
-        $this->where(array($this->tableUniqueKey => $id));
+        $this->where(array($this->tablePK => $id));
         return $this->runDb()->delete();
     }
 

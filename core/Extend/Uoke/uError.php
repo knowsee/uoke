@@ -18,6 +18,9 @@ class uError extends \ErrorException {
         } elseif(is_object($e)) {
             parent::__construct($e->getMessage(), $e->getCode(), $e->getCode(), $e->getFile(), $e->getLine());
             $trace = $e->getTrace();
+        } elseif(is_string($e)) {
+            parent::__construct($e, $errstr, $errstr, $errfile, $errline);
+            $trace = $this->getTrace();
         }
         if (IS_CLI) {
             http_response_code(500);
