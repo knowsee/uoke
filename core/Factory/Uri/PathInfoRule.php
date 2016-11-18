@@ -35,7 +35,7 @@ class PathInfoRule implements UriAdapter {
     }
 
     public function makeUrl($param, $urlName = '') {
-        $ruleString = $this->findRuleKey(array($param['m'], $param['a']));
+        $ruleString = $this->findRuleKey(array($param['a'], $param['m']));
 
     }
 
@@ -43,15 +43,15 @@ class PathInfoRule implements UriAdapter {
         $urlPathInfo = explode('/', $this->paramUri);
         for ($u = 1; $u < count($urlPathInfo); $u++) {
             if($u == 1) {
-                $module[0] = explode('_', $urlPathInfo[$u]);
+                $action[0] = explode('_', $urlPathInfo[$u]);
             } elseif ($u == 2) {
-                $module[1] = $urlPathInfo[$u];
+                $action[1] = $urlPathInfo[$u];
             } else {
                 $modulePathUrl[] = $urlPathInfo[$u];
             }
         }
-        $this->parseRule($module, $modulePathUrl);
-        return $module;
+        $this->parseRule($action, $modulePathUrl);
+        return $action;
     }
 
     private function findRuleKey($path) {
@@ -61,8 +61,8 @@ class PathInfoRule implements UriAdapter {
         }
     }
 
-    private function parseRule($path, $paramValue) {
-        $ruleString = $this->findRuleKey($path);
+    private function parseRule($action, $paramValue) {
+        $ruleString = $this->findRuleKey($action);
         $rule = array_filter(explode('/', $ruleString));
         for ($u = 1; $u <= count($rule); $u++) {
             if($paramValue[($u-1)]) {

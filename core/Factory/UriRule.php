@@ -37,7 +37,7 @@ class UriRule {
      * @return string
      */
     public function makeParseUrl($module, $param, $urlName = '', $siteName = 'default') {
-        list($moduleName, $actionName) = $this->parseModule($module);
+        list($actionName, $moduleName) = $this->parseModule($module);
         $param['m'] = $moduleName;
         $param['a'] = $actionName;
         $getParseUrl = $this->urlModule->makeUrl($param, $urlName);

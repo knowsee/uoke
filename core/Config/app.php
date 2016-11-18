@@ -17,16 +17,15 @@ $_config['gpc'] = array(
 );
 $_config['defaultAction'] = array(
     'siteIndex' => array(
-        'module' => '',
-        'action' => '',
+        'module' => 'Index',
+        'action' => 'Index',
     ),
-    'moduleIndex' => 'Index',
+    'actionIndex' => 'Index',
 );
 $_config['urlRule'] = array(
     'type' => 2,
     'path' => array(
-        'test_user' => '/do/id/username/',
-        'index_index' => '',
+        'Api_hl' => '/do/'
     ),
     'staticUrl' => array(
 
@@ -37,4 +36,7 @@ $_config['urlRule'] = array(
         3 => '\Factory\Uri\RewriteRule'
     )
 );
-$_config['templateDir'] = 'tmp/'; //{APP_DIR}/core/{YOUR TEMPLATE DIR NAME}}
+$_config['siteUrl'] = array(
+    'default' => 'http://www.uoke.org/',
+);
+$_config['templateDir'] = 'Tmp/'; //{APP_DIR}/core/{YOUR TEMPLATE DIR NAME}}

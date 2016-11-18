@@ -16,7 +16,7 @@ class DefaultRule implements UriAdapter {
 
     public function getUrlModel()
     {
-        return array($this->paramGet['m'], $this->paramGet['a']);
+        return array($this->paramGet['a'], $this->paramGet['m']);
     }
 
     public function makeUrl($param, $urlName = '')

@@ -44,17 +44,17 @@ class app {
         }
     }
 
-    private static function goIndex($module, $action) {
-        if(empty($module)) {
+    private static function goIndex($action, $module) {
+        if(empty($action)) {
             self::goDefaultPage();
             return true;
         } else {
-            if(is_array($module)) {
-                self::$CONTROLLER = '\\Action\\'.implode('_', $module);
-                self::runAction($action);
+            if(is_array($action)) {
+                self::$CONTROLLER = '\\Action\\'.implode('_', $action);
+                self::runAction($module);
             } else {
-                self::$CONTROLLER = '\\Action\\'.$module;
-                self::runAction($action);
+                self::$CONTROLLER = '\\Action\\'.$action;
+                self::runAction($module);
             }
             return true;
         }
@@ -62,8 +62,8 @@ class app {
 
     private static function goDefaultPage() {
         $defaultAction = static::$coreConfig['defaultAction']['siteIndex'];
-        self::$CONTROLLER = '\\Action\\'.implode('_', $defaultAction['module']);
-        self::runAction($defaultAction['module'], $defaultAction['action']);
+        self::$CONTROLLER = '\\Action\\'.implode('_', $defaultAction['action']);
+        self::runAction($defaultAction['action'], $defaultAction['module']);
     }
 
     private static function runAction($action) {
@@ -73,8 +73,8 @@ class app {
         $controller = self::createObject(self::$CONTROLLER);
         if($action && method_exists($controller, $action)) {
             $controller->$action();
-        } elseif(empty($action) && method_exists($controller, static::$coreConfig['defaultAction']['moduleIndex'])) {
-            $action = static::$coreConfig['defaultAction']['moduleIndex'];
+        } elseif(empty($action) && method_exists($controller, static::$coreConfig['defaultAction']['actionIndex'])) {
+            $action = static::$coreConfig['defaultAction']['actionIndex'];
             $controller->$action();
         } else {
             throw new \Uoke\uError(E_ERROR,'Action not found');
@@ -168,7 +168,7 @@ class app {
                 return self::$classMap[$classKeyName];
             }
         } catch (\Uoke\uError $e) {
-            UOKE_DEBUG && Evar_dump($e->getMessage());
+            UOKE_DEBUG && var_dump($e->getMessage());
         }
 
     }
