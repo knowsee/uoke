@@ -32,13 +32,9 @@ class app {
             define('IS_APP', false);
         }
         try {
-            try {
-                $url = self::createObject('\Factory\UriRule');
-            } catch (\Uoke\uError $e) {
-                var_dump($e->getMessage());
-            }
-            list($module, $action) = $url->getModel();
-            self::goIndex($module,$action);
+            $url = self::createObject('\Factory\UriRule');
+            list($action, $module) = $url->getModel();
+            self::goIndex($action, $module);
         } catch (\Uoke\uError $e) {
             UOKE_DEBUG && var_dump($e->getMessage());
         }
@@ -49,33 +45,39 @@ class app {
             self::goDefaultPage();
             return true;
         } else {
-            if(is_array($action)) {
-                self::$CONTROLLER = '\\Action\\'.implode('_', $action);
-                self::runAction($module);
-            } else {
-                self::$CONTROLLER = '\\Action\\'.$action;
-                self::runAction($module);
-            }
+            self::$CONTROLLER = '\\Action\\'.self::handleAction($action);
+            self::runAction($module);
             return true;
         }
     }
 
     private static function goDefaultPage() {
         $defaultAction = static::$coreConfig['defaultAction']['siteIndex'];
-        self::$CONTROLLER = '\\Action\\'.implode('_', $defaultAction['action']);
+        self::$CONTROLLER = '\\Action\\'.self::handleAction($defaultAction['action']);
         self::runAction($defaultAction['action'], $defaultAction['module']);
     }
 
-    private static function runAction($action) {
+    private static function handleAction($action) {
+        $smartAction = implode('_', $action['action']);
+        if(!$smartAction && is_string($action)) {
+            return $action;
+        } elseif(!$smartAction && is_array($action)) {
+            return $action[0];
+        } else {
+            return $smartAction;
+        }
+    }
+
+    private static function runAction($module) {
         if(defined('APP_NAME')) {
             self::$CONTROLLER = '\\'.APP_NAME.self::$CONTROLLER;
         }
         $controller = self::createObject(self::$CONTROLLER);
-        if($action && method_exists($controller, $action)) {
-            $controller->$action();
-        } elseif(empty($action) && method_exists($controller, static::$coreConfig['defaultAction']['actionIndex'])) {
-            $action = static::$coreConfig['defaultAction']['actionIndex'];
-            $controller->$action();
+        if($module && method_exists($controller, $module)) {
+            $controller->$module();
+        } elseif(empty($module) && method_exists($controller, static::$coreConfig['defaultAction']['actionIndex'])) {
+            $module = static::$coreConfig['defaultAction']['actionIndex'];
+            $controller->$module();
         } else {
             throw new \Uoke\uError(E_ERROR,'Action not found');
         }

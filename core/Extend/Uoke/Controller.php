@@ -155,14 +155,20 @@ class Controller {
         }
     }
 
+    public static function loadTemplate($filename) {
+        require MAIN_PATH . CONFIG('templateDir') . $filename . '.php';
+    }
+
     /**
      * Url生成方法
      * @param $moduleName like Module:Action(Index:Index)
      * @param array $args is query Array
+     * @param string $ruleName
      * @return string url
      */
-    public function excUrl($moduleName, $args = array()) {
-        return;
+    public function excUrl($moduleName, $args = array(), $ruleName = '') {
+        $urlModule = \app::createObject('\Factory\UriRule');
+        return $urlModule->makeParseUrl($moduleName, $args, $ruleName);
     }
 
     private function callClass($name, $arguments = '') {

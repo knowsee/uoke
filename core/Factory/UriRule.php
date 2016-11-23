@@ -44,6 +44,7 @@ class UriRule {
         return CONFIG('siteUrl/'.$siteName).$getParseUrl;
     }
 
+
     private function parseModule($module) {
         return explode(':', $module);
     }

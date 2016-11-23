@@ -12,7 +12,7 @@ class AcpService {
 			unset($params['signature']);
 		}
 		// 转换成key=val&串
-		$params_str = createLinkString ( $params, true, false );
+		$params_str = CoreFunction\createLinkString ( $params, true, false );
 		$logger->LogInfo ( "签名key=val&...串 >" . $params_str );
 
 		$params_sha1x16 = sha1 ( $params_str, FALSE );
@@ -46,7 +46,7 @@ class AcpService {
 		// 签名串
 		$signature_str = $params ['signature'];
 		unset ( $params ['signature'] );
-		$params_str = createLinkString ( $params, true, false );
+		$params_str = CoreFunction\createLinkString ( $params, true, false );
 		$logger->LogInfo ( '报文去[signature] key=val&串>' . $params_str );
 		$signature = base64_decode ( $signature_str );
 //	echo date('Y-m-d',time());
@@ -67,7 +67,7 @@ class AcpService {
 		$data = json_decode($jsonData);
 		$sign = $data->sign;
 		$data = $data->data;
-		$dataMap = parseQString($data);
+		$dataMap = CoreFunction\parseQString($data);
 		$public_key = CertUtil::getVerifyCertByCertId( $dataMap ['cert_id'] );
 		$signature = base64_decode ( $sign );
 		$params_sha1x16 = sha1 ( $data, FALSE );
@@ -85,7 +85,7 @@ class AcpService {
 	 static function post($params, $url) {
 		 $logger = LogUtil::getLogger();
 	 	
-		 $opts = createLinkString ( $params, false, true );
+		 $opts = CoreFunction\createLinkString ( $params, false, true );
 		 $logger->LogInfo ( "后台请求地址为>" . $url );
 		 $logger->LogInfo ( "后台请求报文为>" . $opts );
  	    
@@ -116,7 +116,7 @@ class AcpService {
 			return null;
 	    }
 		curl_close ( $ch );
-		$result_arr = convertStringToArray ( $html );
+		$result_arr = CoreFunction\convertStringToArray ( $html );
 		return $result_arr;
 	}
 	
@@ -131,7 +131,7 @@ class AcpService {
 
 		$logger = LogUtil::getLogger();
 		
-		$opts = createLinkString ( $params, false, true );
+		$opts = CoreFunction\createLinkString ( $params, false, true );
 		$logger->LogDebug( "后台请求地址为>" . $url ); //get的日志太多而且没啥用，设debug级别
 		$logger->LogDebug ( "后台请求报文为>" . $opts );
 		
@@ -194,7 +194,7 @@ eot;
 	static function getCustomerInfo($customerInfo) {
 	  if($customerInfo == null || count($customerInfo) == 0 )
 	  	return "";
-		return base64_encode ( "{" . createLinkString ( $customerInfo, false, false ) . "}" );
+		return base64_encode ( "{" . CoreFunction\createLinkString ( $customerInfo, false, false ) . "}" );
 	}
 
 	static function getCustomerInfoWithEncrypt($customerInfo) {
@@ -209,11 +209,11 @@ eot;
 			}
 		}
 		if( count ($encryptedInfo) > 0 ){
-			$encryptedInfo = createLinkString ( $encryptedInfo, false, false );
+			$encryptedInfo = CoreFunction\createLinkString ( $encryptedInfo, false, false );
 			$encryptedInfo = AcpService::encryptData ( $encryptedInfo, SDKConfig::SDK_ENCRYPT_CERT_PATH );
 			$customerInfo ['encryptedInfo'] = $encryptedInfo;
 		}
-		return base64_encode ( "{" . createLinkString ( $customerInfo, false, false ) . "}" );
+		return base64_encode ( "{" . CoreFunction\createLinkString ( $customerInfo, false, false ) . "}" );
 	}
 	
 	
@@ -226,12 +226,12 @@ eot;
 	static function parseCustomerInfo($customerInfostr) {
 		$customerInfostr = base64_decode($customerInfostr);
 		$customerInfostr = substr($customerInfostr, 1, strlen($customerInfostr) - 2);
-		$customerInfo = parseQString($customerInfostr);
+		$customerInfo = CoreFunction\parseQString($customerInfostr);
 		if(array_key_exists("encryptedInfo", $customerInfo)) {
 			$encryptedInfoStr = $customerInfo["encryptedInfo"];
 			unset ( $customerInfo ["encryptedInfo"] );
 			$encryptedInfoStr = AcpService::decryptData($encryptedInfoStr);
-			$encryptedInfo = parseQString($encryptedInfoStr);
+			$encryptedInfo = CoreFunction\parseQString($encryptedInfoStr);
 			foreach ($encryptedInfo as $key => $value){
 				$customerInfo[$key] = $value;
 			}
