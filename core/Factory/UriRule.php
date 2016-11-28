@@ -4,13 +4,14 @@ use Uoke\Request\Exception;
 
 class UriRule {
 
-    private $urlType = 1;
-    private $urlModule = null;
     /**
      * uriParse need parse which rule use
-     * ['\Factory\Uri\{pathInfoRule|apacheRule|defaultRule}']
+     * ['\Factory\Uri\{pathInfo|apacheRule|defaultRule}']
      * @var array
      */
+
+    private $urlType = 1;
+    private $urlModule = null;
     private $handleClass = array(
         '1' => '\\Factory\\Uri\\DefaultRule',
     );
@@ -29,23 +30,8 @@ class UriRule {
         return $this->urlModule->getUrlModel();
     }
 
-    /**
-     * @param $module eg Index:Test
-     * @param $param
-     * @param string $urlName
-     * @param string $siteName
-     * @return string
-     */
-    public function makeParseUrl($module, $param, $urlName = '', $siteName = 'default') {
-        list($actionName, $moduleName) = $this->parseModule($module);
-        $param['m'] = $moduleName;
-        $param['a'] = $actionName;
-        $getParseUrl = $this->urlModule->makeUrl($param, $urlName);
-        return CONFIG('siteUrl/'.$siteName).$getParseUrl;
-    }
 
+    private function handleUrl() {
 
-    private function parseModule($module) {
-        return explode(':', $module);
     }
 }

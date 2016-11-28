@@ -7,11 +7,8 @@ namespace Factory;
 class Db {
 
     private static $instance;
-    private $tablePK = '';
+    private $tableUniqueKey = '';
     private $tableCacheTime = 0;
-    /**
-     * @var \Adapter\Db
-     */
     private $dbLink = NULL;
     private $sqlTable = NULL;
     private $sqlAction = array();
@@ -29,12 +26,17 @@ class Db {
         return self::$instance[$key];
     }
 
+    public function __call($name, $arguments)
+    {
+        return $this->runDb()->$name($arguments);
+    }
+
     public function __construct(array $tableConfig = array())
     {
-        $this->tablePK = isset($tableConfig['pkey']) ? $tableConfig['pkey'] : 'id';
+        $this->tableUniqueKey = isset($tableConfig['ukey']) ? $tableConfig['ukey'] : 'id';
         $this->tableCacheTime = isset($tableConfig['cacheTime']) ? $tableConfig['cacheTime'] : 600;
         if(!$this->dbLink) {
-            $dbType = '\\DbExtend\\'.ucwords(CONFIG('db/type'));
+            $dbType = '\\DbExtend\\'.ucwords(CONFIG('db/db_type'));
             $this->dbLink = new $dbType(CONFIG('db'));
         }
         return $this;
@@ -61,14 +63,13 @@ class Db {
     }
 
     public function getById(string $id) : array {
-        $this->where(array($this->tablePK => $id));
+        $this->where(array($this->tableUniqueKey => $id));
         $return = $this->runDb()->getOne();
         return (array)$return;
     }
 
     public function insert(array $data, bool $return_insert_id = false, bool $replace = false) : int {
-		if(!is_array($data) || !$data)
-		    return 0;
+		if(!is_array($data) || !$data) return false;
         $returnArray = $this->runDb()->insert($data, $return_insert_id, $replace);
         return (int)$returnArray;
     }
@@ -79,7 +80,7 @@ class Db {
     }
 
     public function updateById(int $id, array $data, bool $longWait = false) {
-        $this->where(array($this->tablePK => $id));
+        $this->where(array($this->tableUniqueKey => $id));
         return $this->runDb()->update($data, $longWait);
     }
 
@@ -88,7 +89,7 @@ class Db {
     }
 
     public function deleteById(int $id) {
-        $this->where(array($this->tablePK => $id));
+        $this->where(array($this->tableUniqueKey => $id));
         return $this->runDb()->delete();
     }
 
@@ -139,26 +140,8 @@ class Db {
         return $this;
     }
 
-    public function beginTrans() {
-        $this->dbLink->beginTransaction();
-    }
-
-    public function autoTrans() {
-        $this->dbLink->autocommitTransaction();
-    }
-
-    public function commitTrans() {
-        $this->dbLink->commitTransaction();
-    }
-
-    public function rollbackTrans() {
-        $this->dbLink->rollbackTransaction();
-    }
-
     private function runDb() {
         $this->dbLink->handleSqlFunction($this->sqlTable, $this->sqlAction);
         return $this->dbLink;
     }
-
-
 }

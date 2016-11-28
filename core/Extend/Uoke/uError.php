@@ -18,9 +18,6 @@ class uError extends \ErrorException {
         } elseif(is_object($e)) {
             parent::__construct($e->getMessage(), $e->getCode(), $e->getCode(), $e->getFile(), $e->getLine());
             $trace = $e->getTrace();
-        } elseif(is_string($e)) {
-            parent::__construct($e, $errstr, $errstr, $errfile, $errline);
-            $trace = $this->getTrace();
         }
         if (IS_CLI) {
             http_response_code(500);
@@ -31,17 +28,13 @@ class uError extends \ErrorException {
                 'errorFile' => $this->getFile(),
                 'errorLine' => $this->getLine(),
                 'errorTrace' => $trace);
-            if(IS_CLI) {
-                var_dump($message);
-            } else {
-                echo '<script>console.log('.json_encode($message, JSON_UNESCAPED_UNICODE).')</script>';
-            }
+            echo '<script>console.log('.json_encode($message, JSON_UNESCAPED_UNICODE).')</script>';
             error_log(var_export($message, true));
             exit('Uoke back to the  ['.$this->getName().'] door');
         }
     }
 
-    private function getName() {
+    public function getName() {
         static $names = [
             E_COMPILE_ERROR => 'PHP Compile Error',
             E_COMPILE_WARNING => 'PHP Compile Warning',
@@ -60,6 +53,10 @@ class uError extends \ErrorException {
             E_WARNING => 'PHP Warning',
         ];
         return isset($names[$this->getCode()]) ? $names[$this->getCode()] : 'Error['.$this->getCode().']';
+    }
+
+    private static function inFile($file) {
+        return stripslashes($file);
     }
 
 }

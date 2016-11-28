@@ -34,10 +34,6 @@ function getCacheFile($cacheFile) {
     }
 }
 
-function showFileToEve($file) {
-    return str_replace(array(SYSTEM_PATH, MAIN_PATH), '', $file);
-}
-
 function file_exists_case($filename) {
     if (is_file($filename)) {
         if (IS_WIN) {
@@ -95,16 +91,8 @@ function dimplode($array) {
     }
 }
 
-function microtimeSum() {
+function dmicrotime() {
     return array_sum(explode(' ', microtime()));
-}
-
-function implodeCatchSource($glue, $source) {
-    if(is_array($source) && count($source) > 1) {
-        return implode($glue, $source);
-    } else {
-        return $source;
-    }
 }
 
 function dstrlen($str) {
@@ -142,11 +130,4 @@ function strdepack($string) {
     } else {
         return unserialize($string);
     }
-}
-
-function resetArray(&$a) {
-    foreach($a as $val) {
-        $n[] = $val;
-    }
-    $a = $n;
 }

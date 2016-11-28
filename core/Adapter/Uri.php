@@ -9,6 +9,4 @@ interface Uri {
     public function getUrlModel();
     public function getRule();
     public function setRule();
-    public function makeUrl($param, $urlName = '');
-
 }

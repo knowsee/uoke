@@ -1,35 +1,19 @@
 <?php
 namespace Factory\Uri;
 use Adapter\Uri as UriAdapter;
-use Uoke\Request\Client;
 
 class DefaultRule implements UriAdapter {
 
-    private $paramGet = array();
-    private $paramUri = null;
-    private $_Client = null;
-
-    public function __construct() {
-        $this->_Client = Client::getInstance();
-        $this->paramUri = $this->_Client->getWebPathInfo();
-        $this->paramGet = $this->_Client->get();
-    }
-
     public function getUrlModel()
     {
-        return array($this->paramGet['a'], $this->paramGet['m']);
-    }
-
-    public function makeUrl($param, $urlName = '')
-    {
-        return 'index.php?'.http_build_query($param);
+        // TODO: Implement getUrlModel() method.
     }
 
     public function getRule() {
-        return;
+        // TODO: Implement getRule() method.
     }
 
     public function setRule() {
-        return;
+        // TODO: Implement setRule() method.
     }
 }

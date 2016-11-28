@@ -11,8 +11,6 @@ class Mysqli implements Db {
     private $link = NULL;
     private $config = array();
     private $sqlTable = NULL;
-    private $isTransaction = false;
-    private $isAutoTransaction = false;
     private $sqlAction = array(
         'where' => '',
         'groupby' => '',
@@ -35,12 +33,12 @@ class Mysqli implements Db {
             $this->config = $config;
         }
         if (!$this->link) {
-            $this->link = new \mysqli($this->config['host'], $this->config['user'], $this->config['password'], $this->config['name']);
+            $this->link = new \mysqli($this->config['db_host'], $this->config['db_user'], $this->config['db_password'], $this->config['db_name']);
             try {
                 if ($this->link->connect_errno) {
                     throw new uError('Mysql Host Can\'t Connect', $this->link->connect_errno);
                 } else {
-                    $this->link->set_charset($this->config['charset']);
+                    $this->link->set_charset($this->config['db_charset']);
                 }
             } catch (uError $e) {
                 uError::setCoreError($e);
@@ -166,44 +164,6 @@ class Mysqli implements Db {
             return false;
         }
         return $result;
-    }
-
-    public function beginTransaction($flag = null) {
-        $trans = $this->link->begin_transaction();
-        if($trans == true) {
-            $this->isTransaction = true;
-        } else {
-            throw new uError('Transaction can not open');
-        }
-    }
-    public function autocommitTransaction() {
-        if($this->isTransaction = false) {
-            throw new uError('Transaction is not open');
-        } else {
-            if($this->isAutoTransaction == false) {
-                $this->link->autocommit(true);
-                $this->isAutoTransaction = true;
-            } else {
-                $this->link->autocommit(false);
-                $this->isAutoTransaction = false;
-            }
-        }
-    }
-    public function rollbackTransaction() {
-        if($this->isTransaction = true) {
-            $this->link->rollback();
-            $this->isTransaction = false;
-        } else {
-            throw new uError('Transaction is not open');
-        }
-    }
-    public function commitTransaction() {
-        if($this->isTransaction = true) {
-            $this->link->commit();
-            $this->isTransaction = false;
-        } else {
-            throw new uError('Transaction is not open');
-        }
     }
 
     public function handleSqlFunction($sqlTable, $sqlArray) {
