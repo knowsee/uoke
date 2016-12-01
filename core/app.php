@@ -3,8 +3,9 @@ define('IN_UOKE', TRUE);
 defined('MAIN_PATH') or define('MAIN_PATH', dirname(__FILE__).'/');
 defined('UOKE_DEBUG') or define('UOKE_DEBUG', false);
 define('SYSTEM_PATH', dirname(__FILE__).'/');
-defined('LOAD_CONFIG') or define('LOAD_CONFIG', SYSTEM_PATH.'config/');
-define('LOAD_SYSTEM_CONFIG', SYSTEM_PATH.'config/');
+defined('LOAD_CONFIG') or define('LOAD_CONFIG', SYSTEM_PATH.'Config/');
+defined('APP_NAME') or define('APP_NAME', 'default');
+define('LOAD_SYSTEM_CONFIG', SYSTEM_PATH.'Config/');
 define('ICONV_ENABLE', function_exists('iconv'));
 define('MB_ENABLE', function_exists('mb_convert_encoding'));
 define('EXT_OBGZIP', function_exists('ob_gzhandler'));
@@ -12,35 +13,74 @@ define('UNIXTIME', time());
 define('IS_WIN', strstr(PHP_OS, 'WIN') ? 1 : 0 );
 define('IS_CGI', (0 === strpos(PHP_SAPI, 'cgi') || false !== strpos(PHP_SAPI, 'fcgi')) ? 1 : 0 );
 define('IS_CLI', PHP_SAPI == 'cli' ? 1 : 0);
-define('GLOBAL_KEY', 'uoke_');
+define('GLOBAL_KEY', 'UOKE_');
 
 require SYSTEM_PATH.'core.php';
 Core::start();
 class app {
 
     private static $classMap = array();
+    public static $CONTROLLER = null;
     public static $coreConfig = array();
 
     public static function run() {
         if(empty(static::$coreConfig)) {
             static::loadConfig();
         }
-        define('CONTROLLER', '\Action\Index');
+        if(SYSTEM_PATH !== MAIN_PATH) {
+            define('IS_APP', true);
+        } else {
+            define('IS_APP', false);
+        }
         try {
-            try {
-                $url = self::createObject('\Factory\UriRule');
-            } catch (\Uoke\uError $e) {
-                var_export($e->getMessage());
-            }
-            list($module, $action) = $url->getModel();
-            $controller = self::createObject('\\Action\\'.$module);
-            if(method_exists($controller, $action)) {
-                $controller->$action();
-            } else {
-                throw new \Uoke\uError(E_ERROR,'Action not found');
-            }
+            $url = self::createObject('\Factory\UriRule');
+            list($action, $module) = $url->getModel();
+            self::goIndex($action, $module);
         } catch (\Uoke\uError $e) {
-            var_dump($e->getMessage());
+            UOKE_DEBUG && var_dump($e->getMessage());
+        }
+    }
+
+    private static function goIndex($action, $module) {
+        if(empty($action)) {
+            self::goDefaultPage();
+            return true;
+        } else {
+            self::$CONTROLLER = '\\Action\\'.self::handleAction($action);
+            self::runAction($module);
+            return true;
+        }
+    }
+
+    private static function goDefaultPage() {
+        $defaultAction = static::$coreConfig['defaultAction']['siteIndex'];
+        self::$CONTROLLER = '\\Action\\'.self::handleAction($defaultAction['action']);
+        self::runAction($defaultAction['action'], $defaultAction['module']);
+    }
+
+    private static function handleAction($action) {
+        $smartAction = implode('_', $action['action']);
+        if(!$smartAction && is_string($action)) {
+            return $action;
+        } elseif(!$smartAction && is_array($action)) {
+            return $action[0];
+        } else {
+            return $smartAction;
+        }
+    }
+
+    private static function runAction($module) {
+        if(defined('APP_NAME')) {
+            self::$CONTROLLER = '\\'.APP_NAME.self::$CONTROLLER;
+        }
+        $controller = self::createObject(self::$CONTROLLER);
+        if($module && method_exists($controller, $module)) {
+            $controller->$module();
+        } elseif(empty($module) && method_exists($controller, static::$coreConfig['defaultAction']['actionIndex'])) {
+            $module = static::$coreConfig['defaultAction']['actionIndex'];
+            $controller->$module();
+        } else {
+            throw new \Uoke\uError(E_ERROR,'Action not found');
         }
     }
 
@@ -54,10 +94,11 @@ class app {
             require $cacheMainFile;
         }
         static::$coreConfig = strdepack($cache);
+        header("Content-type: text/html; charset=utf-8");
     }
 
     private static function makeAppConfig() {
-        $cacheMainFile = getCacheFile(MAIN_PATH.'data/system/runtime~');
+        $cacheMainFile = getCacheFile(MAIN_PATH.'Data/system/runtime~');
         if(!$cacheMainFile) {
             $cache = array();
             $systemConfigFile = static::makeSystemConfig();
@@ -68,25 +109,25 @@ class app {
                 LOAD_CONFIG . 'app.php',
                 LOAD_CONFIG . 'db.php',
                 LOAD_CONFIG . 'cache.php',
-            ), MAIN_PATH.'data/system/runtime~', $systemConfig);
-            $cacheMainFile = getCacheFile(MAIN_PATH.'data/system/runtime~');
+            ), MAIN_PATH.'Data/system/runtime~', $systemConfig);
+            $cacheMainFile = getCacheFile(MAIN_PATH.'Data/system/runtime~');
         }
         return $cacheMainFile;
     }
 
     private static function makeSystemConfig() {
-        $cacheMainFile = getCacheFile(SYSTEM_PATH.'data/system/runtime~');
+        $cacheMainFile = getCacheFile(SYSTEM_PATH.'Data/system/runtime~');
         if(!$cacheMainFile) {
             $systemConfig['cacheName'] = '_config';
-            $cacheFile = getCacheFile(SYSTEM_PATH.'data/system/runtime~');
+            $cacheFile = getCacheFile(SYSTEM_PATH.'Data/system/runtime~');
             if($cacheFile == false) {
                 setCacheFile(array(
                     LOAD_SYSTEM_CONFIG . 'app.php',
                     LOAD_SYSTEM_CONFIG . 'db.php',
                     LOAD_SYSTEM_CONFIG . 'cache.php',
-                ), SYSTEM_PATH.'data/system/runtime~', $systemConfig);
+                ), SYSTEM_PATH.'Data/system/runtime~', $systemConfig);
             }
-            $cacheMainFile = getCacheFile(SYSTEM_PATH.'data/system/runtime~');
+            $cacheMainFile = getCacheFile(SYSTEM_PATH.'Data/system/runtime~');
         }
         return $cacheMainFile;
     }
@@ -130,7 +171,7 @@ class app {
                 return self::$classMap[$classKeyName];
             }
         } catch (\Uoke\uError $e) {
-            var_dump($e->getMessage());
+            UOKE_DEBUG && var_dump($e->getMessage());
         }
 
     }

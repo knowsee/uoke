@@ -11,6 +11,8 @@ class Mysqli implements Db {
     private $link = NULL;
     private $config = array();
     private $sqlTable = NULL;
+    private $isTransaction = false;
+    private $isAutoTransaction = false;
     private $sqlAction = array(
         'where' => '',
         'groupby' => '',
@@ -33,23 +35,23 @@ class Mysqli implements Db {
             $this->config = $config;
         }
         if (!$this->link) {
-            $this->link = new \mysqli($this->config['db_host'], $this->config['db_user'], $this->config['db_password'], $this->config['db_name']);
+            $this->link = new \mysqli($this->config['host'], $this->config['user'], $this->config['password'], $this->config['name']);
             try {
                 if ($this->link->connect_errno) {
                     throw new uError('Mysql Host Can\'t Connect', $this->link->connect_errno);
                 } else {
-                    $this->link->set_charset($this->config['db_charset']);
+                    $this->link->set_charset($this->config['charset']);
                 }
             } catch (uError $e) {
-                uError::setCoreError($e);
-                return false;
+                var_dump($e->getMessage());
+                exit();
             }
         }
         return $this;
     }
 
     public function table($tableName) {
-        $this->sqlTable = '`' . $this->config['db_pre'] . $tableName . '`';
+        $this->sqlTable = '`' . $this->config['pre'] . $tableName . '`';
         return $this;
     }
 
@@ -89,28 +91,29 @@ class Mysqli implements Db {
         return $result;
     }
 
-    public function getInsetLastId() {
+    public function getInsertLastId() {
         return $this->link->insert_id;
     }
 
     public function getFieldAny($field) {
-        $sql = sprintf('SELECT %s FROM %s WHERE %s', $this->field($field), $this->sqlTable, $this->sqlExtArray['where']);
+        $sql = sprintf('SELECT %s FROM %s WHERE %s', $this->fieldType($field), $this->sqlTable, $this->sqlExtArray['where']);
         return $this->query($sql)->fetch_assoc();
     }
 
-    public function getFieldCount($field, $countType) {
-        $sql = sprintf('SELECT %s FROM %s WHERE %s', $this->fieldType($field, $countType), $this->sqlTable, $this->sqlExtArray['where']);
-        return $this->query($sql)->fetch_assoc();
+    public function getOneField($field) {
+        $sql = sprintf('SELECT %s FROM %s WHERE %s', $this->fieldType($field), $this->sqlTable, $this->sqlExtArray['where']);
+        $row = $this->query($sql)->fetch_row();
+        return $row[0];
     }
 
     public function getVersion() {
-        return $this->link ? $this->link->server_version : 'unKnow';
+        return $this->link ? $this->link->server_version : '0.0';
     }
 
     public function insert($data, $return_insert_id = false, $replace = false) {
         $sql = sprintf('%s %s SET %s', $replace ? 'REPLACE INTO' : 'INSERT INTO', $this->sqlTable, $this->arrayToSql($data));
         $return = $this->query($sql);
-        return $return_insert_id ? $this->getInsetLastId() : $return;
+        return $return_insert_id ? $this->getInsertLastId() : $return;
     }
 
     public function insertReplace($data, $affected = false) {
@@ -166,6 +169,44 @@ class Mysqli implements Db {
         return $result;
     }
 
+    public function beginTransaction($flag = null) {
+        $trans = $this->link->begin_transaction();
+        if($trans == true) {
+            $this->isTransaction = true;
+        } else {
+            throw new uError('Transaction can not open');
+        }
+    }
+    public function autocommitTransaction() {
+        if($this->isTransaction = false) {
+            throw new uError('Transaction is not open');
+        } else {
+            if($this->isAutoTransaction == false) {
+                $this->link->autocommit(true);
+                $this->isAutoTransaction = true;
+            } else {
+                $this->link->autocommit(false);
+                $this->isAutoTransaction = false;
+            }
+        }
+    }
+    public function rollbackTransaction() {
+        if($this->isTransaction = true) {
+            $this->link->rollback();
+            $this->isTransaction = false;
+        } else {
+            throw new uError('Transaction is not open');
+        }
+    }
+    public function commitTransaction() {
+        if($this->isTransaction = true) {
+            $this->link->commit();
+            $this->isTransaction = false;
+        } else {
+            throw new uError('Transaction is not open');
+        }
+    }
+
     public function handleSqlFunction($sqlTable, $sqlArray) {
         $this->table($sqlTable);
         foreach($sqlArray as $key => $value) {
@@ -201,22 +242,11 @@ class Mysqli implements Db {
         return '`'.implode('`,`', $field).'`';
     }
 
-    public function fieldType($field, $queryType) {
-        switch ($queryType) {
-            case 'count':
-                $type = 'COUNT';
-                break;
-            case 'sum':
-                $type = 'SUM';
-                break;
-            case 'avg':
-                $type = 'AVG';
-                break;
-            default :
-                $type = '';
-                break;
+    public function fieldType($fieldList) {
+        foreach($fieldList as $field => $fieldDo) {
+            $sqlField[] = sprintf('%s(%s) %s', $fieldDo, $field, $field=='*'?'':$field);
         }
-        return $type ? sprintf('%s(' . $field . ')', $type) : $field;
+        return implode(', ', $sqlField);
     }
 
     /**
@@ -289,7 +319,7 @@ class Mysqli implements Db {
     private function limit($array) {
         if (!is_array($array) || !$array)
             return '';
-        $this->sqlAction['limit'] = 'LIMIT ' . implode(',', $array);
+        $this->sqlAction['limit'] = 'LIMIT ' . $array[0] . ',' . $array[1];
         return $this;
     }
 

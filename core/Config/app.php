@@ -23,7 +23,7 @@ $_config['defaultAction'] = array(
     'actionIndex' => 'Index',
 );
 $_config['urlRule'] = array(
-    'type' => 2,
+    'type' => 1,
     'path' => array(
         'Api_hl' => '/do/'
     ),
@@ -37,6 +37,7 @@ $_config['urlRule'] = array(
     )
 );
 $_config['siteUrl'] = array(
-    'default' => 'http://www.uoke.org/',
+    'default' => 'http://localhost/uoke/',
+    'Ip' => 'http://localhost/uoke/Ip/'
 );
 $_config['templateDir'] = 'Tmp/'; //{APP_DIR}/core/{YOUR TEMPLATE DIR NAME}}

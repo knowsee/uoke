@@ -5,16 +5,29 @@
  * @author Knowsee
  */
 function CONFIG($field) {
-    return getArrayTree($field, \app::$coreConfig);
+    if($field) {
+        return getArrayTree($field, \app::$coreConfig);
+    } else {
+        return \app::$coreConfig;
+    }
+}
+
+function Url($moduleName, $args = array(), $ruleName = '') {
+    $C = \app::createObject('\Uoke\Controller');
+    return $C->excUrl($moduleName,$args,$ruleName);
+}
+
+function siteUrl($siteName = APP_NAME) {
+    return CONFIG('siteUrl/'.$siteName);
 }
 
 function setCacheFile($configFile, $cacheFile, $reCache = array()) {
     foreach($configFile as $file) {
-        require $file;
+        if(file_exists_case($file))require $file;
     }
     $mergeMain = $reCache['cacheName'];
     unset($reCache['cacheName']);
-    if(empty($reCache)) {
+    if(!empty($reCache)) {
         $newArray = array_merge($reCache, $$mergeMain);
     } else {
         $newArray = $$mergeMain;
@@ -25,6 +38,7 @@ function setCacheFile($configFile, $cacheFile, $reCache = array()) {
     }
 }
 
+
 function getCacheFile($cacheFile) {
     $cacheFile = $cacheFile.'.php';
     if(file_exists_case($cacheFile)) {
@@ -32,6 +46,10 @@ function getCacheFile($cacheFile) {
     } else {
         return '';
     }
+}
+
+function showFileToEve($file) {
+    return str_replace(array(SYSTEM_PATH, MAIN_PATH), '', $file);
 }
 
 function file_exists_case($filename) {
@@ -91,8 +109,16 @@ function dimplode($array) {
     }
 }
 
-function dmicrotime() {
+function microtimeSum() {
     return array_sum(explode(' ', microtime()));
+}
+
+function implodeCatchSource($glue, $source) {
+    if(is_array($source) && count($source) > 1) {
+        return implode($glue, $source);
+    } else {
+        return $source;
+    }
 }
 
 function dstrlen($str) {
@@ -130,4 +156,11 @@ function strdepack($string) {
     } else {
         return unserialize($string);
     }
+}
+
+function resetArray(&$a) {
+    foreach($a as $val) {
+        $n[] = $val;
+    }
+    $a = $n;
 }

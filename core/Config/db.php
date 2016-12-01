@@ -8,9 +8,12 @@ $_config['db'] = array(
     'host' => 'localhost',
     'user' => 'root',
     'password' => 'root',
-    'name' => 'yyt',
+    'name' => '',
     'charset' => 'utf8',
     'pre' => '',
-    'type' => 'Mysqli',
+    'driver' => 'Mysqli',
     'pconnect' => 0
+);
+$_config['dbDriver'] = array(
+    'Mysqli' => '\\DbExtend\\Mysqli'
 );
