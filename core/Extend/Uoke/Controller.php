@@ -99,7 +99,7 @@ class Controller {
      * @param string $message
      * @param int $status
      */
-    public function rightWithJson(array $data, string $message = 'Message Ok', int $status = self::MESSAGE_STATUS_OK) {
+    public function rightWithJson(array $data = array(), string $message = 'Message Ok', int $status = self::MESSAGE_STATUS_OK) {
         $this->returnType = self::RETURN_TYPE_JSON;
         $this->returnClient['data'] = $data;
         $this->returnClient['code'] = $status;
@@ -112,7 +112,7 @@ class Controller {
      * @param string $message
      * @param int $status
      */
-    public function errorWithJson(array $errorDetail, string $message = 'Message Error', int $status = self::MESSAGE_STATUS_ERROR) {
+    public function errorWithJson(string $message = 'Message Error', array $errorDetail = array(), int $status = self::MESSAGE_STATUS_ERROR) {
         $this->returnType = self::RETURN_TYPE_JSON;
         $this->returnClient['code'] = $status;
         $this->returnClient['data']['errorDetail'] = $errorDetail;

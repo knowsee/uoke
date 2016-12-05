@@ -98,7 +98,7 @@ class app {
     }
 
     private static function makeAppConfig() {
-        $cacheMainFile = getCacheFile(MAIN_PATH.'Data/system/runtime~');
+        $cacheMainFile = getCacheFile(MAIN_PATH.'Data/System/runtime~');
         if(!$cacheMainFile) {
             $cache = array();
             $systemConfigFile = static::makeSystemConfig();
@@ -109,25 +109,25 @@ class app {
                 LOAD_CONFIG . 'app.php',
                 LOAD_CONFIG . 'db.php',
                 LOAD_CONFIG . 'cache.php',
-            ), MAIN_PATH.'Data/system/runtime~', $systemConfig);
-            $cacheMainFile = getCacheFile(MAIN_PATH.'Data/system/runtime~');
+            ), MAIN_PATH.'Data/System/runtime~', $systemConfig);
+            $cacheMainFile = getCacheFile(MAIN_PATH.'Data/System/runtime~');
         }
         return $cacheMainFile;
     }
 
     private static function makeSystemConfig() {
-        $cacheMainFile = getCacheFile(SYSTEM_PATH.'Data/system/runtime~');
+        $cacheMainFile = getCacheFile(SYSTEM_PATH.'Data/System/runtime~');
         if(!$cacheMainFile) {
             $systemConfig['cacheName'] = '_config';
-            $cacheFile = getCacheFile(SYSTEM_PATH.'Data/system/runtime~');
+            $cacheFile = getCacheFile(SYSTEM_PATH.'Data/System/runtime~');
             if($cacheFile == false) {
                 setCacheFile(array(
                     LOAD_SYSTEM_CONFIG . 'app.php',
                     LOAD_SYSTEM_CONFIG . 'db.php',
                     LOAD_SYSTEM_CONFIG . 'cache.php',
-                ), SYSTEM_PATH.'Data/system/runtime~', $systemConfig);
+                ), SYSTEM_PATH.'Data/System/runtime~', $systemConfig);
             }
-            $cacheMainFile = getCacheFile(SYSTEM_PATH.'Data/system/runtime~');
+            $cacheMainFile = getCacheFile(SYSTEM_PATH.'Data/System/runtime~');
         }
         return $cacheMainFile;
     }

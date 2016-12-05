@@ -6,16 +6,18 @@ use Helper\{cArray, Json};
  *
  * Some Function copy from Yii
  * @desc Client send info to server, Client can get
- * CLIENT_IP/GET/POST/COOKIES/PUT/DELETE/HEADER and others
+ * CLIENT IP/GET/POST/COOKIES/PUT/DELETE/HEADER and others
  * @package Uoke\Request
  */
 class Client {
+    use TraitClass\TraitClient;
     private static $instance = null;
 
     private $_headers = null;
     private $_cookieParams = null;
     private $_cookieConfig = null;
     private $methodParam = '_methodPath'; //Is Test program method change field
+    private $_isClean = false;
 
 
     public static function getInstance() : Client {
@@ -67,6 +69,9 @@ class Client {
         if($name && empty($value)) {
             return $this->getCookie($name);
         }
+        if(!$name) {
+            return $this->getCookies();
+        }
     }
 
     public function delete($name = null, $defaultValue = null) {
@@ -115,6 +120,7 @@ class Client {
                 $this->_bodyParams = [];
                 mb_parse_str($this->getRawBody(), $this->_bodyParams);
             }
+            $this->_bodyParams = $this->filterParse($this->_bodyParams);
         }
         return $this->_bodyParams;
     }
@@ -198,9 +204,6 @@ class Client {
      * @see setQueryParams()
      */
     public function getQueryParams() : array {
-        if ($this->_queryParams === null) {
-            return $_GET;
-        }
         return $this->_queryParams;
     }
     /**
@@ -225,6 +228,9 @@ class Client {
      * @return array|mixed
      */
     public function get($name = null, $defaultValue = null) {
+        if($this->_queryParams == null) {
+            $this->_queryParams = $this->filterParse($_GET);
+        }
         if ($name === null) {
             return $this->getQueryParams();
         } else {
@@ -904,13 +910,17 @@ class Client {
         }
     }
 
+    public function getCookies() {
+        if($this->_cookieParams == null) {
+            $this->_cookieParams = $this->filterParse($_COOKIE);
+        }
+        return $this->_cookieParams;
+    }
 
     public function getCookie($name) {
         $cookiesName = $this->getCookieName($name);
         if(isset($this->_cookieParams[$cookiesName])) {
             return $this->_cookieParams[$cookiesName];
-        } elseif(isset($_COOKIE[$cookiesName])) {
-            $this->_cookieParams[$cookiesName] = $_COOKIE[$cookiesName];
         }
         return $this->_cookieParams[$cookiesName];
     }
@@ -931,7 +941,12 @@ class Client {
     }
 
     public function deleteCookies($name) {
+        unset($this->_cookieParams[$this->getCookieName($name)]);
         return $this->setCookie($this->getCookieName($name), null, -3600);
+    }
+
+    private function filterParse($mixed) {
+        return $this->filter($mixed);
     }
 
 }

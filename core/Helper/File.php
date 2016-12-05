@@ -9,8 +9,6 @@ namespace Helper;
  * @version 1.0
  */
 class File {
-
-    private static $fileCache = array();
     
     /*
      * 写入文件

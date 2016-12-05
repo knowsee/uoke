@@ -1,12 +1,12 @@
 <?php
 namespace Action;
-use Uoke\Controller, Services\IndexList;
+use Uoke\Controller, HongLing\Order;
 class Index extends Controller{
     public function __construct() {}
 
     public function Index() {
-        $a = json_encode(IndexList::getMyList());
-        $this->view('a', $a);
-        $this->display('test');
+        header("Content-type: text/xml");
+        Order::createOrder();
+        echo Order::getXml();
     }
 }

@@ -95,7 +95,7 @@ class Mysqli implements Db {
         return $this->link->insert_id;
     }
 
-    public function getFieldAny($field) {
+    public function getField($field) {
         $sql = sprintf('SELECT %s FROM %s WHERE %s', $this->fieldType($field), $this->sqlTable, $this->sqlExtArray['where']);
         return $this->query($sql)->fetch_assoc();
     }

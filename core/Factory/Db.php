@@ -20,7 +20,7 @@ class Db {
 
 
     /**
-     *
+     * getInstance
      * @param array $tableConfig = [pkey => '', 'cacheTime' => '']
      * cacheTime is not support
      * @return Db
@@ -32,6 +32,7 @@ class Db {
         }
         return self::$instance[$key];
     }
+
 
     public function __construct(array $tableConfig = array()) {
         $this->tablePK = isset($tableConfig['pkey']) ? $tableConfig['pkey'] : 'id';
@@ -45,14 +46,21 @@ class Db {
     }
 
     /**
-     * Get list with sql
+     * Db FetchList
      * @param string $key
-     * is field name
+     * What key name would you want
      * @param string $returnType
+     * string or array
+     * @param callable $func
+     * Callable $func will parse in the loop
+     * only can get list value inside
      * @return array
      */
-    public function getList(string $key = '', string $returnType = 'string') : array {
+    public function getList(string $key = '', string $returnType = 'string', callable $func = null) : array {
         $returnArray = $this->runDb()->getList();
+        if($func) {
+            $returnArray[1] = array_map($func, $returnArray[1]);
+        }
         if($key) {
             foreach($returnArray[1] as $value) {
                 if($returnType == 'string') {
@@ -96,16 +104,16 @@ class Db {
     }
 
     /**
-     * Get One Sql With Field
+     * Field most
      * @param $field
      * @return mixed
      */
-    public function getFieldAny($field) {
-        return $this->runDb()->getFieldAny($field);
+    public function getField($field) {
+        return $this->runDb()->getField($field);
     }
 
     /**
-     * Get Field Count
+     * Field One
      * @param $field
      * @return mixed
      */
@@ -114,7 +122,17 @@ class Db {
     }
 
     /**
-     * Get Sql Server Version
+     * Get Count
+     * @return mixed
+     */
+    public function getCount() {
+        return $this->runDb()->getOneField(array(
+            '*' => self::FIELD_COUNT
+        ));
+    }
+
+    /**
+     * Db Server Version
      * @return mixed
      */
     public function getVersion() {
@@ -122,7 +140,7 @@ class Db {
     }
 
     /**
-     * Insert data to sql
+     * Insert data to Db
      * @param array $data
      * @param bool $return_insert_id
      * @param bool $replace
@@ -136,7 +154,7 @@ class Db {
     }
 
     /**
-     * Update data to sql
+     * Update data to Db
      * @param array $data
      * @param bool $longWait
      * @return bool
@@ -147,7 +165,7 @@ class Db {
     }
 
     /**
-     * Update Data to sql with pk
+     * Update Data to Db with pk
      * @param int $id
      * id need be use 'pkey' field
      * @param array $data
@@ -160,7 +178,7 @@ class Db {
     }
 
     /**
-     * Sql Delete
+     * Db Delete
      * @return mixed
      */
     public function delete() {
@@ -168,6 +186,7 @@ class Db {
     }
 
     /**
+     * Delete By id
      * @param int $id
      * id need be use 'pkey' field
      * @return mixed
@@ -178,6 +197,7 @@ class Db {
     }
 
     /**
+     * table Set
      * @param string $tableName
      * @return Db
      */
@@ -187,6 +207,7 @@ class Db {
     }
 
     /**
+     * Order
      * @param array $array
      * $array['FIELD'] = ORDER_TYPE
      * @return mixed
@@ -199,6 +220,7 @@ class Db {
     }
 
     /**
+     * Where
      * @param array $array
      * $array['FIELD'] = VALUE
      * @return mixed
@@ -211,6 +233,7 @@ class Db {
     }
 
     /**
+     * Limit
      * @param array $array
      * $array = [START, LIMIT_NUM]
      * @return mixed
@@ -235,6 +258,7 @@ class Db {
     }
 
     /**
+     * Group By
      * @param array $array
      * $array = [GROUPBY_FIELD1, 2, 3, 4]
      * @return mixed
@@ -247,6 +271,7 @@ class Db {
     }
 
     /**
+     * Having By
      * @param array $array
      * ED like where , you can read Uoke\Mysqli\handleSql
      * @return Db
@@ -262,37 +287,40 @@ class Db {
      * open Trans
      */
     public function beginTrans() {
-        $this->dbLink->beginTransaction();
+        $this->driver()->beginTransaction();
     }
 
     /**
      * open auto Trans
      */
     public function autoTrans() {
-        $this->dbLink->autocommitTransaction();
+        $this->driver()->autocommitTransaction();
     }
 
     /**
-     * commit sql to sql
+     * commit sql to Db
      */
     public function commitTrans() {
-        $this->dbLink->commitTransaction();
+        $this->driver()->commitTransaction();
     }
 
     /**
-     * rollback sql
+     * rollback
      */
     public function rollbackTrans() {
-        $this->dbLink->rollbackTransaction();
+        $this->driver()->rollbackTransaction();
     }
 
     /**
-     * @return \Adapter\Db
+     * @return \DbExtend\Mysqli
      */
-    private function runDb() {
-        $this->dbLink->handleSqlFunction($this->sqlTable, $this->sqlAction);
+    private function driver() {
         return $this->dbLink;
     }
 
+    private function runDb() {
+        $this->driver()->handleSqlFunction($this->sqlTable, $this->sqlAction);
+        return $this->driver();
+    }
 
 }

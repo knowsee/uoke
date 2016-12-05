@@ -21,6 +21,7 @@ class Core {
         define('CHARSET', CONFIG('charset'));
         ini_set('date.timezone', CONFIG('timezone'));
         header('Content-Type: text/html; charset=' . CHARSET);
+        header('X-XSS-Protection: 0');
         UOKE_DEBUG && Helper\Log::runLog();
     }
     

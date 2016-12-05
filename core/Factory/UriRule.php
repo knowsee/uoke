@@ -12,7 +12,7 @@ class UriRule {
      * @var array
      */
     private $handleClass = array(
-        '1' => '\\Factory\\Uri\\DefaultRule',
+        '1' => '\Factory\Uri\DefaultRule',
     );
 
     public function __construct() {

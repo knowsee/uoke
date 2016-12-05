@@ -4,7 +4,7 @@
  *
  * @author Knowsee
  */
-function CONFIG($field) {
+function CONFIG(string $field = '') {
     if($field) {
         return getArrayTree($field, \app::$coreConfig);
     } else {
