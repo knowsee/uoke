@@ -56,12 +56,12 @@ class Mysqli implements Db {
     }
 
     public function getOne() {
-        $sql = sprintf('SELECT * FROM %s WHERE %s', $this->sqlTable, $this->sqlExtArray['where']);
+        $sql = sprintf('SELECT %s FROM %s WHERE %s', $this->sqlExtArray['feild'], $this->sqlTable, $this->sqlExtArray['where']);
         return $this->query($sql)->fetch_assoc();
     }
 
     public function getList() {
-        $sql = sprintf('SELECT * FROM %s WHERE %s %s %s %s %s', $this->sqlTable, $this->sqlExtArray['where'], $this->sqlExtArray['order'], $this->sqlExtArray['groupby'], $this->sqlExtArray['having'], $this->sqlExtArray['limit']);
+        $sql = sprintf('SELECT %s FROM %s WHERE %s %s %s %s %s', $this->sqlExtArray['feild'], $this->sqlTable, $this->sqlExtArray['where'], $this->sqlExtArray['order'], $this->sqlExtArray['groupby'], $this->sqlExtArray['having'], $this->sqlExtArray['limit']);
         if ($this->queryId) {
             $this->numCols = $this->numRows = 0;
             $this->queryId = null;
@@ -95,13 +95,13 @@ class Mysqli implements Db {
         return $this->link->insert_id;
     }
 
-    public function getField($field) {
-        $sql = sprintf('SELECT %s FROM %s WHERE %s', $this->fieldType($field), $this->sqlTable, $this->sqlExtArray['where']);
+    public function getField() {
+        $sql = sprintf('SELECT %s FROM %s WHERE %s', $this->sqlExtArray['feild'], $this->sqlTable, $this->sqlExtArray['where']);
         return $this->query($sql)->fetch_assoc();
     }
 
-    public function getOneField($field) {
-        $sql = sprintf('SELECT %s FROM %s WHERE %s', $this->fieldType($field), $this->sqlTable, $this->sqlExtArray['where']);
+    public function getOneField() {
+        $sql = sprintf('SELECT %s FROM %s WHERE %s', $this->sqlExtArray['feild'], $this->sqlTable, $this->sqlExtArray['where']);
         $row = $this->query($sql)->fetch_row();
         return $row[0];
     }
@@ -229,6 +229,9 @@ class Mysqli implements Db {
                 case 'having':
                     $this->havingBy($value);
                     break;
+                case 'feild':
+                    $this->feild($value);
+                    break;
             }
         }
         $this->handleEasySql();
@@ -236,10 +239,6 @@ class Mysqli implements Db {
 
     private function escape($sqlValue) {
         return $this->link->real_escape_string($sqlValue);
-    }
-
-    public function field($field) {
-        return '`'.implode('`,`', $field).'`';
     }
 
     public function fieldType($fieldList) {
@@ -338,14 +337,27 @@ class Mysqli implements Db {
         return $this;
     }
 
+    private function feild($array) {
+        $this->sqlAction['feild'] = $this->fieldType($array);
+        return $this;
+    }
+
     private function handleEasySql() {
-        $this->sqlExtArray = array('where' => $this->sqlAction['where'] ? implode(' AND ', $this->sqlAction['where']) : '1', 'groupby' => $this->sqlAction['groupby'], 'having' => $this->sqlAction['having'], 'limit' => $this->sqlAction['limit'], 'order' => $this->sqlAction['order']);
+        $this->sqlExtArray = array(
+            'feild' => $this->sqlAction['feild'] ? $this->sqlAction['feild'] : '*',
+            'where' => $this->sqlAction['where'] ? implode(' AND ', $this->sqlAction['where']) : '1',
+            'groupby' => $this->sqlAction['groupby'],
+            'having' => $this->sqlAction['having'],
+            'limit' => $this->sqlAction['limit'],
+            'order' => $this->sqlAction['order']
+        );
         $this->sqlAction = array(
             'where' => '',
             'groupby' => '',
             'having' => '',
             'limit' => '',
             'order' => '',
+            'feild' => ''
         );
     }
 
