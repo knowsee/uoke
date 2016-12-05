@@ -45,6 +45,12 @@ class Db {
         return $this;
     }
 
+    public function feild($array) {
+        if (!is_array($array) || !$array)
+            return $this;
+        $this->sqlAction['feild'] = $array;
+    }
+
     /**
      * Db FetchList
      * @param string $key
@@ -105,20 +111,18 @@ class Db {
 
     /**
      * Field most
-     * @param $field
      * @return mixed
      */
-    public function getField($field) {
-        return $this->runDb()->getField($field);
+    public function getField() {
+        return $this->runDb()->getField();
     }
 
     /**
      * Field One
-     * @param $field
      * @return mixed
      */
-    public function getOneField($field) {
-        return $this->runDb()->getOneField($field);
+    public function getOneField() {
+        return $this->runDb()->getOneField();
     }
 
     /**
@@ -126,9 +130,10 @@ class Db {
      * @return mixed
      */
     public function getCount() {
-        return $this->runDb()->getOneField(array(
+        $this->feild(array(
             '*' => self::FIELD_COUNT
         ));
+        return $this->runDb()->getOneField();
     }
 
     /**
