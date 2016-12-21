@@ -9,6 +9,7 @@ class PathInfoRule implements UriAdapter {
     private $paramUri = null;
     private $_Client = null;
     private $rule = array();
+    private $ruleCache = null;
 
     public function __construct() {
         $this->_Client = Client::getInstance();
@@ -35,34 +36,69 @@ class PathInfoRule implements UriAdapter {
     }
 
     public function makeUrl($param, $urlName = '') {
-        $ruleString = $this->findRuleKey(array($param['m'], $param['a']));
+        if($urlName) {
+            $ruleString = $this->findRuleKey($urlName);
+            if($ruleString) {
+                $ruleKey = $urlName;
+            }
+        } else {
+            $ruleString = $this->findRuleKey(array($param['a'], $param['m']));
+            $ruleKey = $this->RuleKey(array($param['a'], $param['m']));
+        }
+        if(empty($ruleKey)) {
+            return false;
+        }
+        if(!$this->ruleCache[$ruleKey]) {
+            preg_match('/[1-9a-zA-z]+/', $ruleString, $this->ruleCache[$ruleKey]['ruleMatch']);
+            array_unshift($this->ruleCache[$ruleKey]['ruleMatch'],'a', 'm');
+            $this->ruleCache[$ruleKey]['ruleFormat'] = 'index.php/%s/%s'.preg_replace('/[1-9a-zA-z]+/', '%s', $ruleString);
+        }
+        return $this->handleMake($param, $this->ruleCache[$ruleKey]);
+    }
 
+    private function handleMake($param, $ruleParam) {
+        $u = array();
+        foreach($ruleParam['ruleMatch'] as $val) {
+            $u[] = $param[$val];
+            if($param[$val]) {
+                unset($param[$val]);
+            }
+        }
+        return vsprintf($ruleParam['ruleFormat'], $u).$this->lastHandleMake($param);
+    }
+
+    private function lastHandleMake($param) {
+        if($param) {
+            return '?'.http_build_query($param);
+        } else {
+            return null;
+        }
     }
 
     private function handleUrl() {
-        $urlPathInfo = explode('/', $this->paramUri);
-        for ($u = 1; $u < count($urlPathInfo); $u++) {
-            if($u == 1) {
-                $module[0] = explode('_', $urlPathInfo[$u]);
-            } elseif ($u == 2) {
-                $module[1] = $urlPathInfo[$u];
-            } else {
+        $urlPathInfo = array_filter(explode('/', $this->paramUri));
+        $action[0] = $urlPathInfo[1] ? explode('_', $urlPathInfo[1]) : null;
+        $action[1] = $urlPathInfo[2] ? $urlPathInfo[2] : null;
+        for ($u = 3; $u < count($urlPathInfo); $u++) {
                 $modulePathUrl[] = $urlPathInfo[$u];
-            }
         }
-        $this->parseRule($module, $modulePathUrl);
-        return $module;
+        $this->parseRule($action, $modulePathUrl);
+        return $action;
+    }
+
+    private function RuleKey($path) {
+        return implodeCatchSource('_', $path[0]).'_'.$path[1];
     }
 
     private function findRuleKey($path) {
-        $pathKey = implode('_', $path[0]).'_'.$path[1];
+        $pathKey = $this->RuleKey($path);
         if(isset($this->rule[$pathKey])) {
             return $this->rule[$pathKey];
         }
     }
 
-    private function parseRule($path, $paramValue) {
-        $ruleString = $this->findRuleKey($path);
+    private function parseRule($action, $paramValue) {
+        $ruleString = $this->findRuleKey($action);
         $rule = array_filter(explode('/', $ruleString));
         for ($u = 1; $u <= count($rule); $u++) {
             if($paramValue[($u-1)]) {

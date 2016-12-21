@@ -12,7 +12,7 @@ class UriRule {
      * @var array
      */
     private $handleClass = array(
-        '1' => '\\Factory\\Uri\\DefaultRule',
+        '1' => '\Factory\Uri\DefaultRule',
     );
 
     public function __construct() {
@@ -33,18 +33,35 @@ class UriRule {
      * @param $module eg Index:Test
      * @param $param
      * @param string $urlName
-     * @param string $siteName
      * @return string
      */
-    public function makeParseUrl($module, $param, $urlName = '', $siteName = 'default') {
-        list($moduleName, $actionName) = $this->parseModule($module);
-        $param['m'] = $moduleName;
+    public function makeParseUrl($module, $param, $urlName = '') {
+        list($siteName, $actionName, $moduleName) = $this->parseModule($module);
+        $siteUrl = CONFIG('siteUrl/'.$siteName);
         $param['a'] = $actionName;
+        $param['m'] = $moduleName;
         $getParseUrl = $this->urlModule->makeUrl($param, $urlName);
-        return CONFIG('siteUrl/'.$siteName).$getParseUrl;
+        return $siteUrl.$getParseUrl;
     }
 
-    private function parseModule($module) {
-        return explode(':', $module);
+    /*
+     * @desc ParseModule
+     * @param string $callAction
+     * @return string
+     */
+    private function parseModule($callAction) {
+        list($actionName, $moduleName) = explode(':', $callAction);
+        $actionList = array_values(array_filter(explode('\\', $actionName)));
+        switch (count($actionList)) {
+            case 3:
+                $siteName = $actionList[0];
+                $actionName = $actionList[2];
+                break;
+            case 2:
+                $siteName = 'default';
+                $actionName = $actionList[1];
+                break;
+        }
+        return array($siteName, $actionName, $moduleName);
     }
 }

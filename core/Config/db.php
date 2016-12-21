@@ -5,12 +5,15 @@
  * Time: 下午12:27
  */
 $_config['db'] = array(
-    'db_host' => 'localhost',
-    'db_user' => 'root',
-    'db_password' => 'root',
-    'db_name' => 'pay',
-    'db_charset' => 'utf8',
-    'db_pre' => '2u_',
-    'db_type' => 'Mysqli',
-    'db_pconnect' => 0
+    'host' => 'localhost',
+    'user' => 'root',
+    'password' => 'root',
+    'name' => 'yyt',
+    'charset' => 'utf8',
+    'pre' => '',
+    'driver' => 'Mysqli',
+    'pconnect' => 0
+);
+$_config['dbDriver'] = array(
+    'Mysqli' => '\\DbExtend\\Mysqli'
 );

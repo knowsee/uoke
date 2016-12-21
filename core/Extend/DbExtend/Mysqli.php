@@ -1,6 +1,6 @@
 <?php
 namespace DbExtend;
-use Adapter\Db, Helper\Log, Uoke\uError;
+use Adapter\Db, Helper\Log;
 
 /**
  * Mysqli数据库引擎适配器
@@ -13,12 +13,15 @@ class Mysqli implements Db {
     private $sqlTable = NULL;
     private $isTransaction = false;
     private $isAutoTransaction = false;
+    private $numRows = 0;
+    private $numCols = 0;
     private $sqlAction = array(
         'where' => '',
         'groupby' => '',
         'having' => '',
         'limit' => '',
         'order' => '',
+        'feild' => '',
     );
     private $sqlExtArray = array(
         'where' => '',
@@ -26,42 +29,42 @@ class Mysqli implements Db {
         'having' => '',
         'limit' => '',
         'order' => '',
+        'feild' => '',
     );
     private $queryId = array();
 
     public function __construct($config) {
-
         if (empty($this->config)) {
             $this->config = $config;
         }
         if (!$this->link) {
-            $this->link = new \mysqli($this->config['db_host'], $this->config['db_user'], $this->config['db_password'], $this->config['db_name']);
+            $this->link = new \mysqli($this->config['host'], $this->config['user'], $this->config['password'], $this->config['name']);
             try {
                 if ($this->link->connect_errno) {
-                    throw new uError('Mysql Host Can\'t Connect', $this->link->connect_errno);
+                    throw new Exception('Mysql Host Can\'t Connect', $this->config, $this->link->connect_errno);
                 } else {
-                    $this->link->set_charset($this->config['db_charset']);
+                    $this->link->set_charset($this->config['charset']);
                 }
-            } catch (uError $e) {
-                uError::setCoreError($e);
-                return false;
+            } catch (Exception $e) {
+                var_dump($e->getMessage());
+                exit();
             }
         }
         return $this;
     }
 
     public function table($tableName) {
-        $this->sqlTable = '`' . $this->config['db_pre'] . $tableName . '`';
+        $this->sqlTable = '`' . $this->config['pre'] . $tableName . '`';
         return $this;
     }
 
     public function getOne() {
-        $sql = sprintf('SELECT * FROM %s WHERE %s', $this->sqlTable, $this->sqlExtArray['where']);
+        $sql = sprintf('SELECT %s FROM %s WHERE %s', $this->sqlExtArray['feild'], $this->sqlTable, $this->sqlExtArray['where']);
         return $this->query($sql)->fetch_assoc();
     }
 
     public function getList() {
-        $sql = sprintf('SELECT * FROM %s WHERE %s %s %s %s %s', $this->sqlTable, $this->sqlExtArray['where'], $this->sqlExtArray['order'], $this->sqlExtArray['groupby'], $this->sqlExtArray['having'], $this->sqlExtArray['limit']);
+        $sql = sprintf('SELECT %s FROM %s WHERE %s %s %s %s %s', $this->sqlExtArray['feild'], $this->sqlTable, $this->sqlExtArray['where'], $this->sqlExtArray['order'], $this->sqlExtArray['groupby'], $this->sqlExtArray['having'], $this->sqlExtArray['limit']);
         if ($this->queryId) {
             $this->numCols = $this->numRows = 0;
             $this->queryId = null;
@@ -91,28 +94,29 @@ class Mysqli implements Db {
         return $result;
     }
 
-    public function getInsetLastId() {
+    public function getInsertLastId() {
         return $this->link->insert_id;
     }
 
-    public function getFieldAny($field) {
-        $sql = sprintf('SELECT %s FROM %s WHERE %s', $this->field($field), $this->sqlTable, $this->sqlExtArray['where']);
+    public function getField() {
+        $sql = sprintf('SELECT %s FROM %s WHERE %s', $this->sqlExtArray['feild'], $this->sqlTable, $this->sqlExtArray['where']);
         return $this->query($sql)->fetch_assoc();
     }
 
-    public function getFieldCount($field, $countType) {
-        $sql = sprintf('SELECT %s FROM %s WHERE %s', $this->fieldType($field, $countType), $this->sqlTable, $this->sqlExtArray['where']);
-        return $this->query($sql)->fetch_assoc();
+    public function getOneField() {
+        $sql = sprintf('SELECT %s FROM %s WHERE %s', $this->sqlExtArray['feild'], $this->sqlTable, $this->sqlExtArray['where']);
+        $row = $this->query($sql)->fetch_row();
+        return $row[0];
     }
 
     public function getVersion() {
-        return $this->link ? $this->link->server_version : 'unKnow';
+        return $this->link ? $this->link->server_version : '0.0';
     }
 
     public function insert($data, $return_insert_id = false, $replace = false) {
         $sql = sprintf('%s %s SET %s', $replace ? 'REPLACE INTO' : 'INSERT INTO', $this->sqlTable, $this->arrayToSql($data));
         $return = $this->query($sql);
-        return $return_insert_id ? $this->getInsetLastId() : $return;
+        return $return_insert_id ? $this->getInsertLastId() : $return;
     }
 
     public function insertReplace($data, $affected = false) {
@@ -129,8 +133,8 @@ class Mysqli implements Db {
         $sql = $sql . ' VALUES ';
         foreach ($data as $k => $value) {
             $ky = array();
-            foreach ($value as $vk => $vvalue) {
-                $ky[] = "'$vvalue'";
+            foreach ($value as $v) {
+                $ky[] = "'$v'";
             }
             $kkey[$k] = '(' . implode(',', $ky) . ')';
         }
@@ -154,15 +158,14 @@ class Mysqli implements Db {
         $debug['begin'] = microtime(true);
         try {
             $result = $this->link->query($sql);
-            if ($this->link->error) {
-                throw new uError('Mysql('.$this->getVersion().')'.$this->link->error, $this->link->errno);
-            }
             $debug['end'] = microtime(true);
             $debug['time'] = '[ RunTime:' . floatval($debug['end'] - $debug['begin']) . 's ]';
-            if (is_object($this->link->query("explain $sql")))
-                $debug['debugSql'] = $this->link->query("explain $sql")->fetch_assoc();
+            $debug['config'] = $this->sqlAction;
             Log::writeLog($debug, 'sql');
-        } catch (uError $e) {
+            if ($this->link->error) {
+                throw new Exception('Mysql('.$this->getVersion().')'.$this->link->error, $debug, $this->link->errno);
+            }
+        } catch (Exception $e) {
             return false;
         }
         return $result;
@@ -173,12 +176,12 @@ class Mysqli implements Db {
         if($trans == true) {
             $this->isTransaction = true;
         } else {
-            throw new uError('Transaction can not open');
+            throw new Exception('Transaction can not open');
         }
     }
     public function autocommitTransaction() {
         if($this->isTransaction = false) {
-            throw new uError('Transaction is not open');
+            throw new Exception('Transaction is not open');
         } else {
             if($this->isAutoTransaction == false) {
                 $this->link->autocommit(true);
@@ -194,7 +197,7 @@ class Mysqli implements Db {
             $this->link->rollback();
             $this->isTransaction = false;
         } else {
-            throw new uError('Transaction is not open');
+            throw new Exception('Transaction is not open');
         }
     }
     public function commitTransaction() {
@@ -202,7 +205,7 @@ class Mysqli implements Db {
             $this->link->commit();
             $this->isTransaction = false;
         } else {
-            throw new uError('Transaction is not open');
+            throw new Exception('Transaction is not open');
         }
     }
 
@@ -228,6 +231,9 @@ class Mysqli implements Db {
                 case 'having':
                     $this->havingBy($value);
                     break;
+                case 'feild':
+                    $this->feild($value);
+                    break;
             }
         }
         $this->handleEasySql();
@@ -237,26 +243,15 @@ class Mysqli implements Db {
         return $this->link->real_escape_string($sqlValue);
     }
 
-    public function field($field) {
-        return '`'.implode('`,`', $field).'`';
-    }
-
-    public function fieldType($field, $queryType) {
-        switch ($queryType) {
-            case 'count':
-                $type = 'COUNT';
-                break;
-            case 'sum':
-                $type = 'SUM';
-                break;
-            case 'avg':
-                $type = 'AVG';
-                break;
-            default :
-                $type = '';
-                break;
+    public function fieldType($fieldList) {
+        if(is_array($fieldList)) {
+            foreach($fieldList as $field => $fieldDo) {
+                $sqlField[] = sprintf('%s(%s) %s', $fieldDo, $field, $field=='*'?'':$field);
+            }
+            return implode(', ', $sqlField);
+        } else {
+            return $fieldList;
         }
-        return $type ? sprintf('%s(' . $field . ')', $type) : $field;
     }
 
     /**
@@ -274,20 +269,23 @@ class Mysqli implements Db {
         foreach ($array as $key => $value) {
             if (is_array($value)) {
                 foreach ($value as $handle => $val) {
-                    $sql[] = self::condSql($key, $this->escape($val), $handle);
+                    $sql[] = self::condSql($key, $val, $handle);
                 }
             } else {
-                $sql[] = self::condSql($key, $this->escape($value), '');
+                $sql[] = self::condSql($key, $value, '');
             }
         }
         return $sql;
     }
 
     public function condSql($key, $value, $handle) {
-        if (in_array($handle, array('>', '<', '>=', '<=', '!=', '<>'))) {
+        if(!is_array($value)) {
+            $value = $this->escape($value);
+        }
+        if (in_array($handle, array('>', '<', '>=', '<=', '!='))) {
             $sql = "`$key` " . $handle . " '$value'";
         } elseif ($handle == 'IN') {
-            $sql = "`$key` IN(".  dimplode($value).")";
+            $sql = "`$key` IN(".dimplode($value).")";
         } elseif ($handle == 'LIKE') {
             $sql = "`$key` LIKE '$value'";
         } elseif ($handle == 'LIKEMORE') {
@@ -298,17 +296,27 @@ class Mysqli implements Db {
         return $sql;
     }
 
-    public function arrayToSql($array, $glue = ',') {
+    private function arrayToSql($array, $glue = ',') {
         $sql = $comma = '';
         foreach ($array as $k => $v) {
             $k = trim($k);
-            if(is_array($v)) {
-                $sql[] = "`$k`= `$k`$v[0]'$v[1]'";
-            } else {
-                $sql[] = "`$k`='$v'";
-            }
+            $sql[] = $this->checkSqlAllow($k, $v);
         }
         return implode($glue, $sql);
+    }
+
+    private function checkSqlAllow(string $key, $value) {
+        if(is_array($value)) {
+            $string = is_string($value[0]) ? $value[0] : null;
+            if($string == null) {
+                throw new Exception('Value is not safe, result block');
+            }
+        }
+        if(in_array($string, array('+', '-', '*', '/', '%'))) {
+            return "`$key`= `$key` $string '$value'";
+        } else {
+            return "`$key`= '$value'";
+        }
     }
 
     private function order($array) {
@@ -329,7 +337,7 @@ class Mysqli implements Db {
     private function limit($array) {
         if (!is_array($array) || !$array)
             return '';
-        $this->sqlAction['limit'] = 'LIMIT ' . implode(',', $array);
+        $this->sqlAction['limit'] = 'LIMIT ' . $array[0] . ',' . $array[1];
         return $this;
     }
 
@@ -348,15 +356,29 @@ class Mysqli implements Db {
         return $this;
     }
 
+    private function feild($array) {
+        $this->sqlAction['feild'] = $this->fieldType($array);
+        return $this;
+    }
+
     private function handleEasySql() {
-        $this->sqlExtArray = array('where' => $this->sqlAction['where'] ? implode(' AND ', $this->sqlAction['where']) : '1', 'groupby' => $this->sqlAction['groupby'], 'having' => $this->sqlAction['having'], 'limit' => $this->sqlAction['limit'], 'order' => $this->sqlAction['order']);
+        $this->sqlExtArray = array(
+            'feild' => $this->sqlAction['feild'] ? $this->sqlAction['feild'] : '*',
+            'where' => $this->sqlAction['where'] ? implode(' AND ', $this->sqlAction['where']) : '1',
+            'groupby' => $this->sqlAction['groupby'],
+            'having' => $this->sqlAction['having'],
+            'limit' => $this->sqlAction['limit'],
+            'order' => $this->sqlAction['order']
+        );
         $this->sqlAction = array(
             'where' => '',
             'groupby' => '',
             'having' => '',
             'limit' => '',
             'order' => '',
+            'feild' => ''
         );
     }
 
 }
+

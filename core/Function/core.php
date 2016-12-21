@@ -4,17 +4,38 @@
  *
  * @author Knowsee
  */
-function CONFIG($field) {
-    return getArrayTree($field, \app::$coreConfig);
+function CONFIG(string $field = '') {
+    if($field) {
+        return getArrayTree($field, \app::$coreConfig);
+    } else {
+        return \app::$coreConfig;
+    }
+}
+
+function Url($moduleName, $args = array(), $ruleName = '') {
+    $C = \app::createObject('\Uoke\Controller');
+    return $C->excUrl($moduleName,$args,$ruleName);
+}
+
+function Contrasts($a, $b, $show = '') {
+    if($a == $b) {
+        return $show;
+    } else {
+        return ;
+    }
+}
+
+function siteUrl($siteName = APP_NAME) {
+    return CONFIG('siteUrl/'.$siteName);
 }
 
 function setCacheFile($configFile, $cacheFile, $reCache = array()) {
     foreach($configFile as $file) {
-        require $file;
+        if(file_exists_case($file))require $file;
     }
     $mergeMain = $reCache['cacheName'];
     unset($reCache['cacheName']);
-    if(empty($reCache)) {
+    if(!empty($reCache)) {
         $newArray = array_merge($reCache, $$mergeMain);
     } else {
         $newArray = $$mergeMain;
@@ -24,6 +45,7 @@ function setCacheFile($configFile, $cacheFile, $reCache = array()) {
         new Uoke\uError(E_USER_ERROR,'Runtime cache false');
     }
 }
+
 
 function getCacheFile($cacheFile) {
     $cacheFile = $cacheFile.'.php';
@@ -95,8 +117,16 @@ function dimplode($array) {
     }
 }
 
-function dmicrotime() {
+function microtimeSum() {
     return array_sum(explode(' ', microtime()));
+}
+
+function implodeCatchSource($glue, $source) {
+    if(is_array($source) && count($source) > 1) {
+        return implode($glue, $source);
+    } else {
+        return $source;
+    }
 }
 
 function dstrlen($str) {

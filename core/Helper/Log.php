@@ -22,7 +22,7 @@ class Log {
         $msg .= $message;
         File::writeFile($msg,
             $name.'.txt',
-            'data/log/autoMsg/',
+            'Data/Log/',
             array('append' => true));
     }
     
@@ -31,7 +31,7 @@ class Log {
         self::$_logWriteObj['runtime'] = self::$_logWriteObj['end'] - self::$_logWriteObj['begin'];
         File::writeFile('====' . date('Y-m-d H:i:s', UNIXTIME) . '===' . "\r\n" . var_export(self::$_logWriteObj, TRUE). "\r\n". var_export(self::$_logMessage, TRUE) . "\r\n\r\n",
             date('H') .'.txt',
-            'data/log/'.date('Y_m_d').'/',
+            'Data/Log/'.date('Y/m/d').'/',
             array('append' => true));
     }
     

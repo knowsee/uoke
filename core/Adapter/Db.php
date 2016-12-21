@@ -12,9 +12,9 @@ interface Db {
     public function table($tableName);
     public function getOne();
     public function getList();
-    public function getInsetLastId();
-    public function getFieldAny($field);
-    public function getFieldCount($field, $countType);
+    public function getInsertLastId();
+    public function getField();
+    public function getOneField();
     public function getVersion();
     public function insert($data, $return_insert_id = false, $replace = false);
     public function insertReplace($data, $affected = false);
@@ -26,7 +26,6 @@ interface Db {
     public function autocommitTransaction();
     public function rollbackTransaction();
     public function commitTransaction();
-
     public function handleSqlFunction($sqlTable, $sqlArray);
 
 }

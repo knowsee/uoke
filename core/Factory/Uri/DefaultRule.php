@@ -1,6 +1,7 @@
 <?php
 namespace Factory\Uri;
 use Adapter\Uri as UriAdapter;
+use Uoke\Request\Client;
 
 class DefaultRule implements UriAdapter {
 
@@ -16,12 +17,12 @@ class DefaultRule implements UriAdapter {
 
     public function getUrlModel()
     {
-        return array($this->paramGet['m'], $this->paramGet['a']);
+        return array($this->paramGet['a'], $this->paramGet['m']);
     }
 
     public function makeUrl($param, $urlName = '')
     {
-        return http_build_query($param);
+        return 'index.php?'.http_build_query($param);
     }
 
     public function getRule() {

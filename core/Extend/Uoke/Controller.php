@@ -9,7 +9,7 @@ class Controller {
         'code',
         'data'
     );
-
+    public $pageNum = 20;
     const RETURN_TYPE_HTML = 'html';
     const RETURN_TYPE_JSON = 'json';
 
@@ -50,9 +50,6 @@ class Controller {
     public function redirect($moduleUrl, $args = array(), $second = self::MESSAGE_SECOND) {
         $pathUrl = '';
         if(!isUrl($moduleUrl)) {
-            /**
-             * Module Url support waiting
-             */
             $pathUrl = $this->excUrl($moduleUrl, $args);
         }
         $second && $this->callClass('server')->setSleep($second);
@@ -81,12 +78,31 @@ class Controller {
     }
 
     /**
+     * Json List 常规输出
+     * @param array $data
+     * @param int $total
+     * @param int $page
+     */
+    public function listWithJson(array $data, int $total, int $page = 1) {
+        $totalPage = ceil($total/$this->pageNum);
+        $this->returnType = self::RETURN_TYPE_JSON;
+        $this->returnClient['data'] = array(
+            'page' => $page,
+            'totalPage' => $totalPage,
+            'total' => $total,
+            'list' => $data
+        );
+        $this->returnClient['code'] = self::MESSAGE_STATUS_OK;
+        $this->showMsg('List');
+    }
+
+    /**
      * Json 常规提示输出
      * @param array $data
      * @param string $message
      * @param int $status
      */
-    public function rightWithJson(array $data, string $message = 'Message Ok', int $status = self::MESSAGE_STATUS_OK) {
+    public function rightWithJson(array $data = array(), string $message = 'Message Ok', int $status = self::MESSAGE_STATUS_OK) {
         $this->returnType = self::RETURN_TYPE_JSON;
         $this->returnClient['data'] = $data;
         $this->returnClient['code'] = $status;
@@ -99,7 +115,7 @@ class Controller {
      * @param string $message
      * @param int $status
      */
-    public function errorWithJson(array $errorDetail, string $message = 'Message Error', int $status = self::MESSAGE_STATUS_ERROR) {
+    public function errorWithJson(string $message = 'Message Error', array $errorDetail = array(), int $status = self::MESSAGE_STATUS_ERROR) {
         $this->returnType = self::RETURN_TYPE_JSON;
         $this->returnClient['code'] = $status;
         $this->returnClient['data']['errorDetail'] = $errorDetail;
@@ -155,14 +171,29 @@ class Controller {
         }
     }
 
+    public static function loadTemplate($filename) {
+        require MAIN_PATH . CONFIG('templateDir') . $filename . '.php';
+    }
+
     /**
      * Url生成方法
-     * @param $moduleName like Module:Action(Index:Index)
+     * @param string $moduleName
      * @param array $args is query Array
+     * @param string $ruleName
      * @return string url
      */
-    public function excUrl($moduleName, $args = array()) {
-        return;
+    public function excUrl($moduleName, $args = array(), $ruleName = '') {
+        $urlModule = \app::createObject('\Factory\UriRule');
+        return $urlModule->makeParseUrl($this->handleModule($moduleName), $args, $ruleName);
+    }
+
+    private function handleModule($actionModule) {
+        if(strstr($actionModule,'\\') == false) {
+            $strPos = strripos(\app::$CONTROLLER, '\\')+1;
+            return substr_replace(\app::$CONTROLLER, $actionModule, $strPos, strlen(\app::$CONTROLLER)-$strPos);
+        } else {
+            return $actionModule;
+        }
     }
 
     private function callClass($name, $arguments = '') {
