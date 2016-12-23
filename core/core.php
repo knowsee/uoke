@@ -78,6 +78,7 @@ class Core {
         if ($e = error_get_last()) {
             new Uoke\uError($e);
         }
+
         UOKE_DEBUG && Helper\Log::saveLog();
     }
 }

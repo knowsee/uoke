@@ -34,10 +34,10 @@ class uError extends \ErrorException {
                 'errorLine' => $this->getLine(),
                 'errorTrace' => $trace);
             if(IS_CLI) {
-                var_dump($message);
+                print_r($message);
             } else {
                 if($_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') {
-                    var_dump($message);
+                    print_r($message);
                 } else {
                     echo '<script>console.log('.json_encode($message, JSON_UNESCAPED_UNICODE).')</script>';
                 }

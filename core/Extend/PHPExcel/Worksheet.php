@@ -423,7 +423,7 @@ class PHPExcel_Worksheet implements PHPExcel_IComparable
             throw new PHPExcel_Exception('Sheet code name cannot be empty.');
         }
         // Some of the printable ASCII characters are invalid:  * : / \ ? [ ] and  first and last characters cannot be a "'"
-        if ((str_replace(self::$invalidCharacters, '', $pValue) !== $pValue) ||
+        if ((str_replace(self::$invalidCharacters, '', $pValue) !== (string)$pValue) ||
             (PHPExcel_Shared_String::Substring($pValue, -1, 1)=='\'') ||
             (PHPExcel_Shared_String::Substring($pValue, 0, 1)=='\'')) {
             throw new PHPExcel_Exception('Invalid character found in sheet code name');
@@ -447,7 +447,7 @@ class PHPExcel_Worksheet implements PHPExcel_IComparable
     private static function checkSheetTitle($pValue)
     {
         // Some of the printable ASCII characters are invalid:  * : / \ ? [ ]
-        if (str_replace(self::$invalidCharacters, '', $pValue) !== $pValue) {
+        if (str_replace(self::$invalidCharacters, '', $pValue) !== (string)$pValue) {
             throw new PHPExcel_Exception('Invalid character found in sheet title');
         }
 
