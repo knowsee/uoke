@@ -30,14 +30,10 @@ class Core {
         if(!class_exists($className) && isset(self::$fileCache[$className]) == false) {
             $corePath = array('helper', 'adapter', 'factory', 'action', 'services');
             $fileClass = self::smartFileFound($classNameExplode, $corePath, $className);
-            try {
-                if(file_exists_case($fileClass.'.php')) {
-                    self::autoLoadFileCache($className, $fileClass.'.php');
-                } else {
-                    throw new Exception($className.' not found, Get File: '.$fileClass.'.php');
-                }
-            } catch(Exception $e) {
-                return false;
+            if(file_exists_case($fileClass.'.php')) {
+                self::autoLoadFileCache($className, $fileClass.'.php');
+            } else {
+                throw new Exception($className.' not found, Get File: '.$fileClass.'.php');
             }
         }
     }
@@ -78,7 +74,6 @@ class Core {
         if ($e = error_get_last()) {
             new Uoke\uError($e);
         }
-
         UOKE_DEBUG && Helper\Log::saveLog();
     }
 }

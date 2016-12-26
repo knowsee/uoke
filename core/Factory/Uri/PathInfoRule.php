@@ -64,7 +64,7 @@ class PathInfoRule implements UriAdapter {
                 unset($param[$val]);
             }
         }
-        return vsprintf($ruleParam['ruleFormat'], $u).$this->lastHandleMake($param);
+        return vsprintf($ruleParam['ruleFormat'], $u).$this->lastHandleMake(array_filter($param));
     }
 
     private function lastHandleMake($param) {

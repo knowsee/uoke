@@ -17,7 +17,6 @@ class RewriteRule implements UriAdapter {
             $this->paramGet = $this->_Client->getCli();
             $this->paramUri = $this->paramGet[0];
         } else {
-            $this->paramUri = $this->_Client->getQueryString() ? $this->_Client->getQueryString() : $this->_Client->getUrl();
             $this->paramGet = $this->_Client->get();
         }
         $this->rule = CONFIG('urlRule/path');
@@ -78,9 +77,10 @@ class RewriteRule implements UriAdapter {
     }
 
     private function handleUrl() {
-        $urlPathInfo = array_filter(explode('/', $this->paramUri));
-        $action[0] = $urlPathInfo[1] ? explode('_', $urlPathInfo[1]) : null;
-        $action[1] = $urlPathInfo[2] ? $urlPathInfo[2] : null;
+        $urlPathInfo = array_filter(explode('/', $this->_Client->getWebPathInfo()));
+        resetArray($urlPathInfo);
+        $action[0] = $urlPathInfo[0] ? explode('_', $urlPathInfo[0]) : null;
+        $action[1] = $urlPathInfo[1] ? $urlPathInfo[1] : null;
         for ($u = 3; $u < count($urlPathInfo); $u++) {
                 $modulePathUrl[] = $urlPathInfo[$u];
         }

@@ -25,6 +25,10 @@ function Contrasts($a, $b, $show = '') {
     }
 }
 
+function Template($tmlName) {
+    \Uoke\Controller::loadTemplate($tmlName);
+}
+
 function siteUrl($siteName = APP_NAME) {
     return CONFIG('siteUrl/'.$siteName);
 }

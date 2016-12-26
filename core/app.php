@@ -37,7 +37,7 @@ class app {
             list($action, $module) = $url->getModel();
             self::goPage($action, $module);
         } catch (\Uoke\uError $e) {
-            UOKE_DEBUG && var_dump($e->getMessage());
+            Template('404');
         }
     }
 
@@ -70,19 +70,23 @@ class app {
     }
 
     private static function runAction($module) {
-        if(defined('APP_NAME') && APP_NAME !== 'default') {
-            self::$CONTROLLER = '\\'.APP_NAME.self::$CONTROLLER;
-        }
-        $controller = self::createObject(self::$CONTROLLER);
-        define('A', self::$CONTROLLER);
-        define('M', $module);
-        if($module && method_exists($controller, $module)) {
-            $controller->$module();
-        } elseif(empty($module) && method_exists($controller, static::$coreConfig['defaultAction']['actionIndex'])) {
-            $module = static::$coreConfig['defaultAction']['actionIndex'];
-            $controller->$module();
-        } else {
-            throw new \Uoke\uError(E_ERROR, 'Action not found');
+        try {
+            if(defined('APP_NAME') && APP_NAME !== 'default') {
+                self::$CONTROLLER = '\\'.APP_NAME.self::$CONTROLLER;
+            }
+            $controller = self::createObject(self::$CONTROLLER);
+            define('A', self::$CONTROLLER);
+            define('M', $module);
+            if($module && method_exists($controller, $module)) {
+                $controller->$module();
+            } elseif(empty($module) && method_exists($controller, static::$coreConfig['defaultAction']['actionIndex'])) {
+                $module = static::$coreConfig['defaultAction']['actionIndex'];
+                $controller->$module();
+            } else {
+                throw new \Exception('Connect is fail');
+            }
+        } catch (\Exception $e) {
+            Template('404');
         }
     }
 
@@ -96,7 +100,6 @@ class app {
             require $cacheMainFile;
         }
         static::$coreConfig = strdepack($cache);
-        header("Content-type: text/html; charset=utf-8");
     }
 
     private static function makeAppConfig() {
@@ -162,20 +165,15 @@ class app {
     }
 
     private static function returnClass($className, $params = [], $config = []) {
-        try {
-            $classKeyName = to_guid_string($className);
-            if(isset(self::$classMap[$classKeyName]) == false) {
-                self::$classMap[$classKeyName] = new $className(...$config);
-            }
-            if($params) {
-                return call_user_func_array(self::$classMap[$classKeyName], $params);
-            } else {
-                return self::$classMap[$classKeyName];
-            }
-        } catch (\Uoke\uError $e) {
-            UOKE_DEBUG && var_dump($e->getMessage());
+        $classKeyName = to_guid_string($className);
+        if(isset(self::$classMap[$classKeyName]) == false) {
+            self::$classMap[$classKeyName] = new $className(...$config);
         }
-
+        if($params) {
+            return call_user_func_array(self::$classMap[$classKeyName], $params);
+        } else {
+            return self::$classMap[$classKeyName];
+        }
     }
 
     private static function invoke(callable $callback, $params = []) {
