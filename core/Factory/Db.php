@@ -49,6 +49,7 @@ class Db {
         if (!is_array($array) || !$array)
             return $this;
         $this->sqlAction['feild'] = $array;
+        return $this;
     }
 
     /**
@@ -64,18 +65,17 @@ class Db {
      */
     public function getList(string $key = '', string $returnType = 'string', callable $func = null) : array {
         $returnArray = $this->runDb()->getList();
-        if($func) {
-            $returnArray[1] = array_map($func, $returnArray[1]);
-        }
         if($key) {
             foreach($returnArray[1] as $value) {
                 if($returnType == 'string') {
-                    $returnList[$value[$key]] = $value;
+                    $returnList[$value[$key]] = $func($value);
                 } else {
-                    $returnList[$value[$key]][] = $value;
+                    $returnList[$value[$key]][] = $func($value);
                 }
             }
             $returnArray[1] = $returnList;
+        } elseif($func) {
+            $returnArray[1] = array_map($func, $returnArray[1]);
         }
         return (array)$returnArray;
     }
@@ -239,14 +239,16 @@ class Db {
 
     /**
      * Limit
-     * @param array $array
+     * @param string $string
      * $array = [START, LIMIT_NUM]
      * @return mixed
      */
-    public function limit(array $array = array()) : Db {
-        if (!is_array($array) || !$array)
+    public function limit(string $string) : Db {
+        list($getNum, $beginNum) = explode(',', $string);
+        if(!$getNum || !$beginNum) {
             return $this;
-        $this->sqlAction['limit'] = $array;
+        }
+        $this->sqlAction['limit'] = array(intval($getNum), intval($beginNum));
         return $this;
     }
 
@@ -325,6 +327,7 @@ class Db {
 
     private function runDb() {
         $this->driver()->handleSqlFunction($this->sqlTable, $this->sqlAction);
+        $this->sqlAction = array();
         return $this->driver();
     }
 

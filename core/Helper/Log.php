@@ -1,11 +1,7 @@
 <?php
 namespace Helper;
 class Log {
-    
-    const IMPORTANT = '9999';
-    const NOTICE = '999';
-    const INFO = '99';
-    
+	
     public static $_logMessage = array();
     public static $_logWriteObj = array();
     
@@ -13,8 +9,8 @@ class Log {
         self::$_logWriteObj = array('begin' => UNIXTIME);
     }
 
-    public static function writeLog($message, string $type = 'php', string $level = self::NOTICE) {
-        self::$_logMessage[$type][UNIXTIME][$level][] = $message;
+    public static function writeLog($message, $type = 'php') {
+        self::$_logMessage[$type][UNIXTIME][] = $message;
     }
 
     public static function writeOtherLogFile(string $name, string $message) {
@@ -31,7 +27,7 @@ class Log {
         self::$_logWriteObj['runtime'] = self::$_logWriteObj['end'] - self::$_logWriteObj['begin'];
         File::writeFile('====' . date('Y-m-d H:i:s', UNIXTIME) . '===' . "\r\n" . var_export(self::$_logWriteObj, TRUE). "\r\n". var_export(self::$_logMessage, TRUE) . "\r\n\r\n",
             date('H') .'.txt',
-            'Data/Log/'.date('Y_m_d').'/',
+            'Data/Log/'.date('Y/m/d').'/',
             array('append' => true));
     }
     

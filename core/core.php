@@ -12,7 +12,7 @@ class Core {
     public function __construct() {}
     
     public static function start() {
-        error_reporting(E_ALL);
+        error_reporting(0);
         spl_autoload_register('Core::autoload');
         register_shutdown_function('Core::appSystemError');
         set_error_handler('Core::errorException');
@@ -21,24 +21,19 @@ class Core {
         define('CHARSET', CONFIG('charset'));
         ini_set('date.timezone', CONFIG('timezone'));
         header('Content-Type: text/html; charset=' . CHARSET);
-        header('X-XSS-Protection: 0');
         UOKE_DEBUG && Helper\Log::runLog();
     }
     
     public static function autoLoad($className) {
         $classNameExplode = explode('\\', $className);
         if(!class_exists($className) && isset(self::$fileCache[$className]) == false) {
-            $corePath = array('helper', 'adapter', 'factory', 'action', 'services');
+            $corePath = array('helper', 'adapter', 'factory', 'action', 'services', 'config');
             $fileClass = self::smartFileFound($classNameExplode, $corePath, $className);
-            try {
-                if(file_exists_case($fileClass.'.php')) {
-                    self::autoLoadFileCache($className, $fileClass.'.php');
-                } else {
-                    throw new Exception($className.' not found, Get File: '.$fileClass.'.php');
-                }
-            } catch(Exception $e) {
-                UOKE_DEBUG && var_dump(showFileToEve($e->getMessage()));
-            }
+            if(file_exists_case($fileClass.'.php')) {
+                self::autoLoadFileCache($className, $fileClass.'.php');
+            } else {
+				throw new \Uoke\uError($className. ' Class Not Found');
+			}
         }
     }
 
@@ -70,13 +65,14 @@ class Core {
     
     public static function errorException($e, $errstr = '', $errfile = '', $errline = '') {
         if(!in_array($e, array(E_NOTICE, E_WARNING))) {
-            new Uoke\uError($e, $errstr, $errfile, $errline);
+            $e = new \Uoke\uError($e, $errstr, $errfile, $errline);
+			UOKE_DEBUG && $e->show();
         }
     }
     
     public static function appSystemError() {
         if ($e = error_get_last()) {
-            new Uoke\uError($e);
+            $e = new Uoke\uError($e);
         }
         UOKE_DEBUG && Helper\Log::saveLog();
     }

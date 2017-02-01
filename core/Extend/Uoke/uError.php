@@ -7,38 +7,65 @@ namespace Uoke;
  */
 class uError extends \ErrorException {
 
-    public function __construct($e, $errstr = '', $errfile = __FILE__, $errline = __LINE__) {
-        $trace = '';
+    public $errorInfo = [];
+	public $trace = [];
+	private $error = [];
+	
+    public function __construct($e, $errstr = E_NOTICE, $errfile = __FILE__, $errline = __LINE__) {
         if (is_numeric($e)) {
             parent::__construct($errstr, $e, $e, $errfile, $errline);
-            $trace = $this->getTrace();
+            $this->trace = $this->getTrace();
         } elseif(is_array($e)) {
             parent::__construct($e['message'], $e['type'], $e['type'], $e['file'], $e['line']);
-            $trace = $this->getTrace();
+            $this->trace = $this->getTrace();
         } elseif(is_object($e)) {
             parent::__construct($e->getMessage(), $e->getCode(), $e->getCode(), $e->getFile(), $e->getLine());
-            $trace = $e->getTrace();
+            $this->trace = $e->getTrace();
         } elseif(is_string($e)) {
-            parent::__construct($e, $errstr, $errstr, $errfile, $errline);
-            $trace = $this->getTrace();
+            parent::__construct($e, $errstr);
+            $this->trace = $this->getTrace();
         }
-        if (IS_CLI) {
+		$this->error[] = 'ErrorLevel {'.$this->getName().'}';
+		$this->error[] = array('message' => $this->getMessage(),
+			'errorFile' => $this->getFile(),
+			'errorLine' => $this->getLine(),
+			'errorTrace' => $this->trace);
+		if($this->isFatal($this->getCode())) {
+			\Helper\Log::writeLog($this->error);
+			$this->show();
+		}
+		return $this;
+    }
+	
+	public function code() {
+		return $this->getCode();
+	}
+	
+	protected function isFatal($type) {
+        return in_array($type, [E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_PARSE]);
+    }
+	
+	public function show() {
+		if (IS_CLI) {
             http_response_code(500);
-        }
+		}
         if(UOKE_DEBUG) {
-            $message[] = 'ErrorLevel {'.$this->getName().'}';
-            $message[] = array('message' => $this->getMessage(),
-                'errorFile' => $this->getFile(),
-                'errorLine' => $this->getLine(),
-                'errorTrace' => $trace);
             if(IS_CLI) {
-                var_dump($message);
+                print_r($this->error);
             } else {
-                echo '<script>console.log('.json_encode($message, JSON_UNESCAPED_UNICODE).')</script>';
+                if($_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') {
+                    print_r($this->error);
+                } else {
+					var_dump($this->error);
+                }
             }
-            error_log(var_export($message, true));
-            exit('Uoke back to the  ['.$this->getName().'] door');
-        }
+        } else {
+			exit('Uoke back to the  ['.$this->getName().'] door');
+		}
+	}
+
+    public function __toString() {
+        return $this->getMessage();
     }
 
     private function getName() {

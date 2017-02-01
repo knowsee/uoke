@@ -17,6 +17,18 @@ function Url($moduleName, $args = array(), $ruleName = '') {
     return $C->excUrl($moduleName,$args,$ruleName);
 }
 
+function Contrasts($a, $b, $show = '') {
+    if($a == $b) {
+        return $show;
+    } else {
+        return ;
+    }
+}
+
+function Template($tmlName) {
+    \Uoke\Controller::loadTemplate($tmlName);
+}
+
 function siteUrl($siteName = APP_NAME) {
     return CONFIG('siteUrl/'.$siteName);
 }

@@ -50,7 +50,7 @@ class Filter {
     }
 
     public static function FullText($string) {
-        return filter_var($string, FILTER_SANITIZE_STRING);
+        return filter_var($string, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
     }
 
     public static function Slashes($string) {

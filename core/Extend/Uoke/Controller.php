@@ -9,6 +9,7 @@ class Controller {
         'code',
         'data'
     );
+    public $pageNum = 20;
     const RETURN_TYPE_HTML = 'html';
     const RETURN_TYPE_JSON = 'json';
 
@@ -83,9 +84,11 @@ class Controller {
      * @param int $page
      */
     public function listWithJson(array $data, int $total, int $page = 1) {
+        $totalPage = ceil($total/$this->pageNum);
         $this->returnType = self::RETURN_TYPE_JSON;
         $this->returnClient['data'] = array(
             'page' => $page,
+            'totalPage' => $totalPage,
             'total' => $total,
             'list' => $data
         );
@@ -181,7 +184,7 @@ class Controller {
      */
     public function excUrl($moduleName, $args = array(), $ruleName = '') {
         $urlModule = \app::createObject('\Factory\UriRule');
-        return $urlModule->makeParseUrl($this->handleModule($moduleName), $args, $ruleName);
+		return $urlModule->makeParseUrl($this->handleModule($moduleName), $args, $ruleName);
     }
 
     private function handleModule($actionModule) {

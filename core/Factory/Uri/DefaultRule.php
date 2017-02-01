@@ -22,6 +22,7 @@ class DefaultRule implements UriAdapter {
 
     public function makeUrl($param, $urlName = '')
     {
+        $param = array_filter($param);
         return 'index.php?'.http_build_query($param);
     }
 

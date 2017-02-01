@@ -51,7 +51,7 @@ class PathInfoRule implements UriAdapter {
         if(!$this->ruleCache[$ruleKey]) {
             preg_match('/[1-9a-zA-z]+/', $ruleString, $this->ruleCache[$ruleKey]['ruleMatch']);
             array_unshift($this->ruleCache[$ruleKey]['ruleMatch'],'a', 'm');
-            $this->ruleCache[$ruleKey]['ruleFormat'] = '%s/%s'.preg_replace('/[1-9a-zA-z]+/', '%s', $ruleString);
+            $this->ruleCache[$ruleKey]['ruleFormat'] = 'index.php/%s/%s'.preg_replace('/[1-9a-zA-z]+/', '%s', $ruleString);
         }
         return $this->handleMake($param, $this->ruleCache[$ruleKey]);
     }
@@ -64,7 +64,7 @@ class PathInfoRule implements UriAdapter {
                 unset($param[$val]);
             }
         }
-        return vsprintf($ruleParam['ruleFormat'], $u).$this->lastHandleMake($param);
+        return vsprintf($ruleParam['ruleFormat'], $u).$this->lastHandleMake(array_filter($param));
     }
 
     private function lastHandleMake($param) {
@@ -76,15 +76,11 @@ class PathInfoRule implements UriAdapter {
     }
 
     private function handleUrl() {
-        $urlPathInfo = explode('/', $this->paramUri);
-        for ($u = 1; $u < count($urlPathInfo); $u++) {
-            if($u == 1) {
-                $action[0] = explode('_', $urlPathInfo[$u]);
-            } elseif ($u == 2) {
-                $action[1] = $urlPathInfo[$u];
-            } else {
+        $urlPathInfo = array_filter(explode('/', $this->paramUri));
+        $action[0] = $urlPathInfo[1] ? explode('_', $urlPathInfo[1]) : null;
+        $action[1] = $urlPathInfo[2] ? $urlPathInfo[2] : null;
+        for ($u = 3; $u < count($urlPathInfo); $u++) {
                 $modulePathUrl[] = $urlPathInfo[$u];
-            }
         }
         $this->parseRule($action, $modulePathUrl);
         return $action;

@@ -23,7 +23,7 @@ $_config['defaultAction'] = array(
     'actionIndex' => 'Index',
 );
 $_config['urlRule'] = array(
-    'type' => 1,
+    'type' => 2,
     'path' => [
         'Api_hl' => '/do/'
     ],
@@ -35,9 +35,9 @@ $_config['urlRule'] = array(
     ]
 );
 $_config['siteUrl'] = array(
-    'default' => 'http://localhost/uoke/',
-    'Ip' => 'http://localhost/uoke/Ip/'
+    'default' => 'http://localhost/tag/',
 );
+$_config['data']['dir'] = 'Data/Upload/';
 $_config['templateDir'] = 'Tmp/'; //{APP_DIR}/core/{YOUR TEMPLATE DIR NAME}}
 $_config['timeFormat']['AiString'] = '@time@msg';
 $_config['timeFormat']['default'] = 'Y-m-d';

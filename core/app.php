@@ -33,29 +33,31 @@ class app {
             define('IS_APP', false);
         }
         try {
-            $url = self::createObject('\Factory\UriRule');
-            list($action, $module) = $url->getModel();
-            self::goIndex($action, $module);
+            $url = self::createObject('\Factory\UriFast');
+			list($action, $module) = $url->runRoute();
+			if(!$action) {
+				self::goDefaultPage();
+			} else {
+				self::goPage($action, $module);
+			}
         } catch (\Uoke\uError $e) {
-            UOKE_DEBUG && var_dump($e->getMessage());
+			$http = self::createObject('\Uoke\Request\HttpException', array(), $e->code());
+			$http->showCode();
         }
     }
-
-    private static function goIndex($action, $module) {
-        if(empty($action)) {
-            self::goDefaultPage();
-            return true;
-        } else {
-            self::$CONTROLLER = '\\Action\\'.self::handleAction($action);
-            self::runAction($module);
-            return true;
-        }
-    }
-
-    private static function goDefaultPage() {
+	
+	private static function goDefaultPage() {
         $defaultAction = static::$coreConfig['defaultAction']['siteIndex'];
         self::$CONTROLLER = '\\Action\\'.self::handleAction($defaultAction['action']);
         self::runAction($defaultAction['action'], $defaultAction['module']);
+    }
+	
+    private static function goPage($action, $module) {
+        self::$CONTROLLER = '\\Action\\'.self::handleAction($action);
+		if(!$module) {
+			$module = static::$coreConfig['defaultAction']['actionIndex'];
+		}
+		self::runAction($module);
     }
 
     private static function handleAction($action) {
@@ -68,20 +70,19 @@ class app {
             return $smartAction;
         }
     }
-
+	
     private static function runAction($module) {
-        if(defined('APP_NAME')) {
-            self::$CONTROLLER = '\\'.APP_NAME.self::$CONTROLLER;
-        }
-        $controller = self::createObject(self::$CONTROLLER);
-        if($module && method_exists($controller, $module)) {
-            $controller->$module();
-        } elseif(empty($module) && method_exists($controller, static::$coreConfig['defaultAction']['actionIndex'])) {
-            $module = static::$coreConfig['defaultAction']['actionIndex'];
-            $controller->$module();
-        } else {
-            throw new \Uoke\uError(E_ERROR,'Action not found');
-        }
+        if(defined('APP_NAME') && APP_NAME !== 'default') {
+			self::$CONTROLLER = '\\'.APP_NAME.self::$CONTROLLER;
+		}
+		$controller = new self::$CONTROLLER();
+		define('A', self::$CONTROLLER);
+		define('M', $module);
+		if($module && method_exists($controller, $module)) {
+			$controller->$module();
+		} else {
+			throw new \Uoke\uError('Connect is fail', 404);
+		}
     }
 
     private static function loadConfig() {
@@ -94,7 +95,6 @@ class app {
             require $cacheMainFile;
         }
         static::$coreConfig = strdepack($cache);
-        header("Content-type: text/html; charset=utf-8");
     }
 
     private static function makeAppConfig() {
@@ -143,7 +143,7 @@ class app {
      * @param string $type
      * @param array $params
      * @return object the created object
-     * @throws Exception
+     * @throws \Uoke\uError
      */
     public static function createObject($type, array $params = []) {
         if (is_string($type)) {
@@ -153,27 +153,22 @@ class app {
         } elseif (is_callable($type, true)) {
             return static::invoke($type, $params);
         } elseif (is_array($type)) {
-            throw new Exception('Object configuration must be an array containing a "class" element.');
+            throw new \Uoke\uError('Object configuration must be an array containing a "class" element.');
         } else {
-            throw new Exception('Unsupported configuration type: ' . gettype($type));
+            throw new \Uoke\uError('Unsupported configuration type: ' . gettype($type));
         }
     }
 
     private static function returnClass($className, $params = [], $config = []) {
-        try {
-            $classKeyName = to_guid_string($className);
-            if(isset(self::$classMap[$classKeyName]) == false) {
-                self::$classMap[$classKeyName] = new $className(...$config);
-            }
-            if($params) {
-                return call_user_func_array(self::$classMap[$classKeyName], $params);
-            } else {
-                return self::$classMap[$classKeyName];
-            }
-        } catch (\Uoke\uError $e) {
-            UOKE_DEBUG && var_dump($e->getMessage());
+        $classKeyName = to_guid_string($className);
+        if(isset(self::$classMap[$classKeyName]) == false && class_exists($className)) {
+            self::$classMap[$classKeyName] = new $className(...$config);
+		}
+        if($params) {
+            return call_user_func_array(self::$classMap[$classKeyName], $params);
+        } else {
+            return self::$classMap[$classKeyName];
         }
-
     }
 
     private static function invoke(callable $callback, $params = []) {

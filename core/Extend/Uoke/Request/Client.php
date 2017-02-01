@@ -17,7 +17,6 @@ class Client {
     private $_cookieParams = null;
     private $_cookieConfig = null;
     private $methodParam = '_methodPath'; //Is Test program method change field
-    private $_isClean = false;
 
 
     public static function getInstance() : Client {
