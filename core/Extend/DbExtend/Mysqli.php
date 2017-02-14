@@ -312,6 +312,7 @@ class Mysqli implements Db {
                 throw new Exception('Value is not safe, result block');
             }
         }
+        $value = $this->escape($value);
         if(in_array($string, array('+', '-', '*', '/', '%'))) {
             return "`$key`= `$key` $string '$value'";
         } else {

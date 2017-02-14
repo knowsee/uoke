@@ -18,7 +18,7 @@ class Date extends \DateTime {
         if($format == self::FORMAT_AI_TIME) {
             return self::AITime($unixTime);
         } else {
-            return self::createFromFormat($format, date(self::ISO8601, $unixTime));
+            return self::createFromFormat('Y-m-d H:i:s', date('Y-m-d H:i:s', $unixTime))->format($format);
         }
     }
 
@@ -31,7 +31,7 @@ class Date extends \DateTime {
         }
         $messageCode = self::diffTimeMessage(abs($getDiff));
         if($messageCode == 0) {
-            return self::createFromFormat(self::FORMAT_DEFAULT, date(self::ISO8601, $unixTime));
+            return self::createFromFormat(self::FORMAT_DEFAULT, date(self::FORMAT_DEFAULT, $unixTime))->format(self::FORMAT_DEFAULT);
         } else {
             return str_replace(array('@time', '@msg'), array(CONFIG('timeFormat/lang/'.$messageCode), CONFIG('timeFormat/lang/'.$mixZero)), CONFIG('timeFormat/AiString'));
         }

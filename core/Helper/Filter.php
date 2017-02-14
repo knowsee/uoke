@@ -19,14 +19,22 @@ class Filter {
         return self::$mixed;
     }
 
-    private static function InputParse($C) {
+    private static function InputParse($check) {
         if(is_array(self::$mixed)) {
-            self::$mixed = array_map(function($Value) use($C) {
-                return self::$C($Value);
-            }, self::$mixed);
+            self::$mixed = self::LoopParse(self::$mixed, $check);
         } else {
-            self::$mixed = self::$C(self::$mixed);
+            self::$mixed = self::$check(self::$mixed);
         }
+    }
+
+    private static function LoopParse($array, $check) {
+        return array_map(function($value) use($check) {
+            if(is_array($value)) {
+                return self::LoopParse($value, $check);
+            } else {
+                return self::$check($value);
+            }
+        }, $array);
     }
 
     public static function Intval($string) {
@@ -46,7 +54,7 @@ class Filter {
     }
 
     public static function Input($string) {
-        return filter_var($string, FILTER_SANITIZE_STRING);
+        return filter_var($string, FILTER_SANITIZE_MAGIC_QUOTES);
     }
 
     public static function FullText($string) {

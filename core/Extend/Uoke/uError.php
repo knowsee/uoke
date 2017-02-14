@@ -1,5 +1,6 @@
 <?php
 namespace Uoke;
+use Helper\Log;
 /**
  * 异常处理与分析类
  *
@@ -31,7 +32,7 @@ class uError extends \ErrorException {
 			'errorLine' => $this->getLine(),
 			'errorTrace' => $this->trace);
 		if($this->isFatal($this->getCode())) {
-			\Helper\Log::writeLog($this->error);
+			Log::writeLog($this->error);
 			$this->show();
 		}
 		return $this;

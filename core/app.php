@@ -42,7 +42,7 @@ class app {
 			}
         } catch (\Uoke\uError $e) {
 			$http = self::createObject('\Uoke\Request\HttpException', array(), $e->code());
-			$http->showCode();
+			$http->showCode($e->show());
         }
     }
 	

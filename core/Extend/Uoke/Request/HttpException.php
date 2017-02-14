@@ -19,7 +19,7 @@ class HttpException {
 		return $this;
     }
 	
-	public function showCode() {
+	public function showCode($thing = '') {
 		$Page = \App::createObject('\Uoke\Controller');
 		$Client = Client::getInstance();
 		if($Client->getIsAjax() == true) {
@@ -27,6 +27,7 @@ class HttpException {
 		} else {
 			$getError = $this->errorGo($this->code);
 			if($getError == true) {
+			    $Page->view('thing', $thing);
 				$Page->display('Uoke/'.$this->code);
 			}
 		}

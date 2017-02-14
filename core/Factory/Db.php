@@ -245,7 +245,7 @@ class Db {
      */
     public function limit(string $string) : Db {
         list($getNum, $beginNum) = explode(',', $string);
-        if(!$getNum || !$beginNum) {
+        if($getNum < 0 || $beginNum  < 0) {
             return $this;
         }
         $this->sqlAction['limit'] = array(intval($getNum), intval($beginNum));
