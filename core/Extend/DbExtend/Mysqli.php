@@ -16,7 +16,7 @@ class Mysqli implements Db {
     private $numRows = 0;
     private $numCols = 0;
     private $sqlAction = array(
-        'where' => '',
+        'where' => array(),
         'groupby' => '',
         'having' => '',
         'limit' => '',
@@ -297,7 +297,6 @@ class Mysqli implements Db {
     }
 
     private function arrayToSql($array, $glue = ',') {
-        $sql = $comma = '';
         foreach ($array as $k => $v) {
             $k = trim($k);
             $sql[] = $this->checkSqlAllow($k, $v);
@@ -372,7 +371,7 @@ class Mysqli implements Db {
             'order' => $this->sqlAction['order']
         );
         $this->sqlAction = array(
-            'where' => '',
+            'where' => array(),
             'groupby' => '',
             'having' => '',
             'limit' => '',
