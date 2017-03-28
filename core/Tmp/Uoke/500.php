@@ -1,5 +1,10 @@
 <html>
 <body>
-<h2>500 system error</h2>
+<h2>Page Error</h2>
+<div>
+
+<?=$thing?>
+</div>
+
 </body>
 </html>

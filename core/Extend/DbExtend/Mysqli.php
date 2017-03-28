@@ -98,12 +98,12 @@ class Mysqli implements Db {
         return $this->link->insert_id;
     }
 
-    public function getField() {
+    public function getFieldList() {
         $sql = sprintf('SELECT %s FROM %s WHERE %s', $this->sqlExtArray['feild'], $this->sqlTable, $this->sqlExtArray['where']);
         return $this->query($sql)->fetch_assoc();
     }
 
-    public function getOneField() {
+    public function getFieldOne() {
         $sql = sprintf('SELECT %s FROM %s WHERE %s', $this->sqlExtArray['feild'], $this->sqlTable, $this->sqlExtArray['where']);
         $row = $this->query($sql)->fetch_row();
         return $row[0];

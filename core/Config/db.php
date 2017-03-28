@@ -7,13 +7,13 @@
 $_config['db'] = array(
     'host' => 'localhost',
     'user' => 'root',
-    'password' => 'root',
-    'name' => 'tag',
+    'password' => '',
+    'name' => 'btc',
     'charset' => 'utf8',
     'pre' => '',
     'driver' => 'Mysqli',
-    'pconnect' => 0
+    'pconnect' => 0,
 );
 $_config['dbDriver'] = array(
-    'Mysqli' => '\\DbExtend\\Mysqli'
+    'Mysqli' => '\\DbExtend\\Mysqli',
 );

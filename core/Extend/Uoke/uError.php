@@ -1,6 +1,9 @@
 <?php
+
 namespace Uoke;
+
 use Helper\Log;
+
 /**
  * 异常处理与分析类
  *
@@ -9,64 +12,67 @@ use Helper\Log;
 class uError extends \ErrorException {
 
     public $errorInfo = [];
-	public $trace = [];
-	private $error = [];
-	
+    public $trace = [];
+
     public function __construct($e, $errstr = E_NOTICE, $errfile = __FILE__, $errline = __LINE__) {
         if (is_numeric($e)) {
             parent::__construct($errstr, $e, $e, $errfile, $errline);
             $this->trace = $this->getTrace();
-        } elseif(is_array($e)) {
+        } elseif (is_array($e)) {
             parent::__construct($e['message'], $e['type'], $e['type'], $e['file'], $e['line']);
             $this->trace = $this->getTrace();
-        } elseif(is_object($e)) {
+        } elseif (is_object($e)) {
             parent::__construct($e->getMessage(), $e->getCode(), $e->getCode(), $e->getFile(), $e->getLine());
             $this->trace = $e->getTrace();
-        } elseif(is_string($e)) {
+        } elseif (is_string($e)) {
             parent::__construct($e, $errstr);
             $this->trace = $this->getTrace();
         }
-		$this->error[] = 'ErrorLevel {'.$this->getName().'}';
-		$this->error[] = array('message' => $this->getMessage(),
-			'errorFile' => $this->getFile(),
-			'errorLine' => $this->getLine(),
-			'errorTrace' => $this->trace);
-		if($this->isFatal($this->getCode())) {
-			Log::writeLog($this->error);
-			$this->show();
-		}
-		return $this;
+        $this->errorInfo[] = 'ErrorLevel {' . $this->getName() . '}';
+        $this->errorInfo[] = array('message' => $this->getMessage(),
+            'errorFile' => $this->getFile(),
+            'errorLine' => $this->getLine(),
+            'errorTrace' => $this->trace);
+        return $this;
     }
-	
-	public function code() {
-		return $this->getCode();
-	}
-	
-	protected function isFatal($type) {
+
+    public function code() {
+        return $this->getCode();
+    }
+
+    protected function isFatal($type) {
         return in_array($type, [E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_PARSE]);
     }
-	
-	public function show() {
-		if (IS_CLI) {
-            http_response_code(500);
-		}
-        if(UOKE_DEBUG) {
-            if(IS_CLI) {
-                print_r($this->error);
+
+    public function show() {
+        if ($this->isFatal($this->getCode()) || UOKE_DEBUG == true) {
+            Log::writeLog($this->errorInfo);
+            if (IS_CLI) {
+                var_dump($this->errorInfo);
             } else {
-                if($_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') {
-                    print_r($this->error);
+                if ($_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') {
+                    var_dump($this->errorInfo);
                 } else {
-					var_dump($this->error);
+                    var_dump($this->errorInfo);
                 }
             }
-        } else {
-			exit('Uoke back to the  ['.$this->getName().'] door');
-		}
-	}
+        }
+    }
 
     public function __toString() {
-        return $this->getMessage();
+		$echo = null;
+		array_walk($this->errorInfo, function($value, $key) use(&$echo) {
+			if(!isset($value['message'])) {
+				$html = '<p>'.$value.'</p>';
+			} else {
+				$html = '<p>Error: '.$value['message'].'</p>';
+				$html .= '<p>File Info: '.$value['errorFile'].'('.$value['errorLine'].')'.'</p>';
+				$html .= '<pre>Trace: '.var_export($value['errorTrace'], true).'</pre>';
+			}
+			
+			$echo .= $html;
+		});
+		return $echo;
     }
 
     private function getName() {
@@ -87,7 +93,7 @@ class uError extends \ErrorException {
             E_USER_WARNING => 'PHP User Warning',
             E_WARNING => 'PHP Warning',
         ];
-        return isset($names[$this->getCode()]) ? $names[$this->getCode()] : 'Error['.$this->getCode().']';
+        return isset($names[$this->getCode()]) ? $names[$this->getCode()] : 'Error[' . $this->getCode() . ']';
     }
 
 }

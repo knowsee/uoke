@@ -1,7 +1,13 @@
 <?php
+
 namespace Uoke;
-use Uoke\Request\Client, Uoke\Request\Server, Helper\Json;
+
+use Uoke\Request\Client,
+    Uoke\Request\Server,
+    Helper\Json;
+
 class Controller {
+
     private $view = array();
     private $returnType = 'html';
     private $returnClient = array(
@@ -9,10 +15,18 @@ class Controller {
         'code',
         'data'
     );
+    protected $client = null;
+    protected $server = null;
+    protected $array = null;
+    
     public $pageNum = 20;
+    public $pageName = 'page';
+    public $limitName = 'getNum';
+    
+    public $page = 1;
+
     const RETURN_TYPE_HTML = 'html';
     const RETURN_TYPE_JSON = 'json';
-
     const MESSAGE_STATUS_OK = 200;
     const MESSAGE_STATUS_ERROR = 500;
     const MESSAGE_STATUS_BAN = 403;
@@ -23,24 +37,16 @@ class Controller {
     const MESSAGE_SECOND = 3;
 
     /**
-     * 魔法方法
-     * @param $name
-     * @param $arguments
-     * @return mixed|Client|Server|array
+     * Handle with Get pageName && limitName to set Page && LimitRow
+     * @return $this
      */
-    public function __call($name, $arguments) {
-        return $this->callClass($name, $arguments);
+    public function __construct() {
+        $this->client = Client::getInstance();
+        $this->server = Server::getInstance();
+        list($this->page, $this->pageNum) = $this->pageLimitInit();
+        return $this;
     }
-
-    /**
-     * 魔法获取
-     * @param $name
-     * @return mixed|Client|Server
-     */
-    public function __get($name) {
-        return $this->callClass($name);
-    }
-
+    
     /**
      * 301跳转
      * @param $moduleUrl
@@ -48,13 +54,9 @@ class Controller {
      * @param int $second
      */
     public function redirect($moduleUrl, $args = array(), $second = self::MESSAGE_SECOND) {
-        $pathUrl = '';
-        if(!isUrl($moduleUrl)) {
-            $pathUrl = $this->excUrl($moduleUrl, $args);
-        }
+        $pathUrl = $this->excUrl($moduleUrl, $args);
         $second && $this->callClass('server')->setSleep($second);
-        header("Location: ".$this->callClass('client')->getServerName().$pathUrl);
-        if(function_exists('fastcgi_finish_request')) fastcgi_finish_request();
+        header("Location: " . $pathUrl);
     }
 
     /**
@@ -64,7 +66,7 @@ class Controller {
      * @param int $second
      */
     public function rightWithWeb($message, $moduleUrl, $second = self::MESSAGE_SECOND) {
-
+        
     }
 
     /**
@@ -74,7 +76,7 @@ class Controller {
      * @param int $second
      */
     public function errorWithWeb($message, $moduleUrl, $second = self::MESSAGE_SECOND) {
-
+        
     }
 
     /**
@@ -84,7 +86,7 @@ class Controller {
      * @param int $page
      */
     public function listWithJson(array $data, int $total, int $page = 1) {
-        $totalPage = ceil($total/$this->pageNum);
+        $totalPage = ceil($total / $this->pageNum);
         $this->returnType = self::RETURN_TYPE_JSON;
         $this->returnClient['data'] = array(
             'page' => $page,
@@ -130,9 +132,9 @@ class Controller {
      * @param int $second
      */
     public function showMsg($message, $moduleUrl = '', $template = '', $second = self::MESSAGE_SECOND) {
-        if($this->returnType == self::RETURN_TYPE_HTML) {
+        if ($this->returnType == self::RETURN_TYPE_HTML) {
             echo $message;
-        } elseif($this->returnType == self::RETURN_TYPE_JSON) {
+        } elseif ($this->returnType == self::RETURN_TYPE_JSON) {
             header("Content-type: application/json");
             echo Json::encode(array(
                 'message' => $message,
@@ -163,7 +165,7 @@ class Controller {
      * @param string $filename
      */
     public function display(string $filename) {
-        if(!IS_CLI) {
+        if (!IS_CLI) {
             extract($this->view);
             require MAIN_PATH . CONFIG('templateDir') . $filename . '.php';
         } else {
@@ -183,30 +185,30 @@ class Controller {
      * @return string url
      */
     public function excUrl($moduleName, $args = array(), $ruleName = '') {
-        $urlModule = \app::createObject('\Factory\UriRule');
-		return $urlModule->makeParseUrl($this->handleModule($moduleName), $args, $ruleName);
+        $urlModule = \app::createObject('\Factory\UriFast');
+        return $urlModule->makeParseUrl($this->handleModule($moduleName), $moduleName, $args, $ruleName);
+    }
+    
+    private function pageLimitInit() {
+        $page = $this->client->get($this->pageName, 1);
+        if($page < 1) {
+            $page = 1;
+        }
+        $limit = $this->client->get($this->limitName, $this->pageNum);
+        if($limit < 1) {
+            $limit = 1;
+        }
+        return array(intval($page), intval($limit));
     }
 
     private function handleModule($actionModule) {
-        if(strstr($actionModule,'\\') == false) {
-            $strPos = strripos(\app::$CONTROLLER, '\\')+1;
-            return substr_replace(\app::$CONTROLLER, $actionModule, $strPos, strlen(\app::$CONTROLLER)-$strPos);
+        if (strstr($actionModule, '/') == false) {
+            list($appName, $actionModule) = explode('\\', \app::$CONTROLLER);
+            return $actionModule;
         } else {
+            list($actionModule) = explode('/', $actionModule);
             return $actionModule;
         }
     }
-
-    private function callClass($name, $arguments = '') {
-        switch ($name) {
-            case 'array':
-                $arguments = !$arguments ? array(CONTROLLER) : $arguments;
-                return call_user_func_array('\Helper\cArray::getInstance', $arguments);
-            case 'client':
-                return Client::getInstance();
-            case 'server':
-                return Server::getInstance();
-        }
-    }
-
 
 }

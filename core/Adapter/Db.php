@@ -13,8 +13,8 @@ interface Db {
     public function getOne();
     public function getList();
     public function getInsertLastId();
-    public function getField();
-    public function getOneField();
+    public function getFieldList();
+    public function getFieldOne();
     public function getVersion();
     public function insert($data, $return_insert_id = false, $replace = false);
     public function insertReplace($data, $affected = false);

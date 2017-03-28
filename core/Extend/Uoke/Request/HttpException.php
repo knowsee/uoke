@@ -20,6 +20,14 @@ class HttpException {
     }
 	
 	public function showCode($thing = '') {
+		if(IS_CLI) {
+			$this->showToCli($thing);
+		} else {
+			$this->showToHtml($thing);
+		}
+	}
+	
+	private function showToHtml($thing) {
 		$Page = \App::createObject('\Uoke\Controller');
 		$Client = Client::getInstance();
 		if($Client->getIsAjax() == true) {
@@ -32,5 +40,11 @@ class HttpException {
 			}
 		}
 		return true;
+	}
+	
+	private function showToCli($thing) {
+		echo '['.$this->code.']'. $this->getCode($this->code) . PHP_EOL;
+		echo $thing . PHP_EOL;
+		exit;
 	}
 }

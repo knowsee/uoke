@@ -1,19 +1,16 @@
 <?php
+
 /**
  * @author Knowsee
  */
 $_config['charset'] = 'utf8';
 $_config['timezone'] = 'Asia/Shanghai';
 $_config['cookies'] = [
-    'domain' => '',
+    'domain' => 'hostlocal.com',
     'lifetime' => 3600,
-    'prefix' => '',
-    'path' => '',
+    'prefix' => 'host_',
+    'path' => '/',
     'safe' => '',
-];
-$_config['gpc'] = [
-    'clean' => '',
-    'systemString' => '',
 ];
 $_config['defaultAction'] = array(
     'siteIndex' => [
@@ -23,26 +20,28 @@ $_config['defaultAction'] = array(
     'actionIndex' => 'Index',
 );
 $_config['urlRule'] = array(
-    'type' => 2,
+    'type' => 3,
     'path' => [
-        'Api_hl' => '/do/'
+        'Api_hl' => '/do/',
     ],
     'staticUrl' => [],
     'handleClass' => [
         1 => '\Factory\Uri\DefaultRule',
         2 => '\Factory\Uri\PathInfoRule',
-        3 => '\Factory\Uri\RewriteRule'
+        3 => '\Factory\Uri\RewriteRule',
     ]
 );
 $_config['siteUrl'] = array(
-    'default' => 'http://localhost/tag/',
+    'default' => 'http://host.ckc.im/',
+    'Ip' => 'http://hostlocal.com/',
+    'Admin' => 'http://adminlocal.com/'
 );
 $_config['data']['dir'] = 'Data/Upload/';
 $_config['templateDir'] = 'Tmp/'; //{APP_DIR}/core/{YOUR TEMPLATE DIR NAME}}
 $_config['timeFormat']['AiString'] = '@time@msg';
 $_config['timeFormat']['default'] = 'Y-m-d';
 $_config['timeFormat']['AiDiff'] = [
-    10, 30, 60, 1440, 10080
+    10, 30, 60, 1440, 10080,
 ];
 $_config['timeFormat']['lang'] = [
     10 => '10分钟',

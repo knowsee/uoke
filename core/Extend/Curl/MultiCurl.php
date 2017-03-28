@@ -414,6 +414,19 @@ class MultiCurl
     }
 
     /**
+     * Set Cookies
+     *
+     * @access public
+     * @param  $cookies
+     */
+    public function setCookies($cookies)
+    {
+        foreach ($cookies as $key => $value) {
+            $this->cookies[$key] = $value;
+        }
+    }
+
+    /**
      * Set Port
      *
      * @access public
@@ -440,12 +453,10 @@ class MultiCurl
      *
      * @access public
      * @param  $string
-     *
-     * @return bool
      */
     public function setCookieString($string)
     {
-        return $this->setOpt(CURLOPT_COOKIE, $string);
+        $this->setOpt(CURLOPT_COOKIE, $string);
     }
 
     /**
@@ -624,7 +635,7 @@ class MultiCurl
         }
 
         for ($i = 0; $i < $concurrency; $i++) {
-            $this->initHandle(array_pop($this->curls));
+            $this->initHandle(array_shift($this->curls));
         }
 
         do {
@@ -645,7 +656,7 @@ class MultiCurl
 
                             // Start a new request before removing the handle of the completed one.
                             if (count($this->curls) >= 1) {
-                                $this->initHandle(array_pop($this->curls));
+                                $this->initHandle(array_shift($this->curls));
                             }
                             curl_multi_remove_handle($this->multiCurl, $ch->curl);
 
@@ -781,7 +792,6 @@ class MultiCurl
         }
 
         $this->activeCurls[$curl->id] = $curl;
-        $this->responseCookies = array();
         $curl->call($curl->beforeSendFunction);
     }
 }

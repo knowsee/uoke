@@ -1,11 +1,12 @@
 <?php
+
 define('IN_UOKE', TRUE);
-defined('MAIN_PATH') or define('MAIN_PATH', dirname(__FILE__).'/');
+defined('MAIN_PATH') or define('MAIN_PATH', dirname(__FILE__) . '/');
 defined('UOKE_DEBUG') or define('UOKE_DEBUG', false);
-define('SYSTEM_PATH', dirname(__FILE__).'/');
-defined('LOAD_CONFIG') or define('LOAD_CONFIG', SYSTEM_PATH.'Config/');
+define('SYSTEM_PATH', dirname(__FILE__) . '/');
+defined('LOAD_CONFIG') or define('LOAD_CONFIG', SYSTEM_PATH . 'Config/');
 defined('APP_NAME') or define('APP_NAME', 'default');
-define('LOAD_SYSTEM_CONFIG', SYSTEM_PATH.'Config/');
+define('LOAD_SYSTEM_CONFIG', SYSTEM_PATH . 'Config/');
 define('ICONV_ENABLE', function_exists('iconv'));
 define('MB_ENABLE', function_exists('mb_convert_encoding'));
 define('EXT_OBGZIP', function_exists('ob_gzhandler'));
@@ -15,8 +16,9 @@ define('IS_CGI', (0 === strpos(PHP_SAPI, 'cgi') || false !== strpos(PHP_SAPI, 'f
 define('IS_CLI', PHP_SAPI == 'cli' ? 1 : 0);
 define('GLOBAL_KEY', 'UOKE_');
 
-require SYSTEM_PATH.'core.php';
+require SYSTEM_PATH . 'core.php';
 Core::start();
+
 class app {
 
     private static $classMap = array();
@@ -24,70 +26,70 @@ class app {
     public static $coreConfig = array();
 
     public static function run() {
-        if(empty(static::$coreConfig)) {
+        if (empty(static::$coreConfig)) {
             static::loadConfig();
         }
-        if(SYSTEM_PATH !== MAIN_PATH) {
+        if (SYSTEM_PATH !== MAIN_PATH) {
             define('IS_APP', true);
         } else {
             define('IS_APP', false);
         }
         try {
             $url = self::createObject('\Factory\UriFast');
-			list($action, $module) = $url->runRoute();
-			if(!$action) {
-				self::goDefaultPage();
-			} else {
-				self::goPage($action, $module);
-			}
+            list($action, $module) = $url->runRoute();
+            if (!$action) {
+                self::goDefaultPage();
+            } else {
+                self::goPage($action, $module);
+            }
         } catch (\Uoke\uError $e) {
-			$http = self::createObject('\Uoke\Request\HttpException', array(), $e->code());
-			$http->showCode($e->show());
+            $http = self::createObject('\Uoke\Request\HttpException', array(), $e->code());
+            $http->showCode($e);
         }
     }
-	
-	private static function goDefaultPage() {
+
+    private static function goDefaultPage() {
         $defaultAction = static::$coreConfig['defaultAction']['siteIndex'];
-        self::$CONTROLLER = '\\Action\\'.self::handleAction($defaultAction['action']);
+        self::$CONTROLLER = '\\Action\\' . self::handleAction($defaultAction['action']);
         self::runAction($defaultAction['action'], $defaultAction['module']);
     }
-	
+
     private static function goPage($action, $module) {
-        self::$CONTROLLER = '\\Action\\'.self::handleAction($action);
-		if(!$module) {
-			$module = static::$coreConfig['defaultAction']['actionIndex'];
-		}
-		self::runAction($module);
+        self::$CONTROLLER = '\\Action\\' . self::handleAction($action);
+        if (!$module) {
+            $module = static::$coreConfig['defaultAction']['actionIndex'];
+        }
+        self::runAction($module);
     }
 
     private static function handleAction($action) {
         $smartAction = implode('_', $action['action']);
-        if(!$smartAction && is_string($action)) {
+        if (!$smartAction && is_string($action)) {
             return $action;
-        } elseif(!$smartAction && is_array($action)) {
+        } elseif (!$smartAction && is_array($action)) {
             return $action[0];
         } else {
             return $smartAction;
         }
     }
-	
+
     private static function runAction($module) {
-        if(defined('APP_NAME') && APP_NAME !== 'default') {
-			self::$CONTROLLER = '\\'.APP_NAME.self::$CONTROLLER;
-		}
-		$controller = new self::$CONTROLLER();
-		define('A', self::$CONTROLLER);
-		define('M', $module);
-		if($module && method_exists($controller, $module)) {
-			$controller->$module();
-		} else {
-			throw new \Uoke\uError('Connect is fail', 404);
-		}
+        if (defined('APP_NAME') && APP_NAME !== 'default') {
+            self::$CONTROLLER = '\\' . APP_NAME . self::$CONTROLLER;
+        }
+        define('A', self::$CONTROLLER);
+        define('M', $module);
+        $controller = new self::$CONTROLLER();
+        if ($module && method_exists($controller, $module)) {
+            $controller->$module();
+        } else {
+            throw new \Uoke\uError('Connect is fail', 404);
+        }
     }
 
     private static function loadConfig() {
         $cache = array();
-        if(LOAD_SYSTEM_CONFIG !== LOAD_CONFIG) {
+        if (LOAD_SYSTEM_CONFIG !== LOAD_CONFIG) {
             $cacheMainFile = static::makeAppConfig();
             require $cacheMainFile;
         } else {
@@ -98,8 +100,8 @@ class app {
     }
 
     private static function makeAppConfig() {
-        $cacheMainFile = getCacheFile(MAIN_PATH.'Data/System/runtime~');
-        if(!$cacheMainFile) {
+        $cacheMainFile = getCacheFile(MAIN_PATH . 'Data/System/runtime~');
+        if (!$cacheMainFile || UOKE_DEBUG == true) {
             $cache = array();
             $systemConfigFile = static::makeSystemConfig();
             require $systemConfigFile;
@@ -109,25 +111,22 @@ class app {
                 LOAD_CONFIG . 'app.php',
                 LOAD_CONFIG . 'db.php',
                 LOAD_CONFIG . 'cache.php',
-            ), MAIN_PATH.'Data/System/runtime~', $systemConfig);
-            $cacheMainFile = getCacheFile(MAIN_PATH.'Data/System/runtime~');
+                    ), MAIN_PATH . 'Data/System/runtime~', $systemConfig);
+            $cacheMainFile = getCacheFile(MAIN_PATH . 'Data/System/runtime~');
         }
         return $cacheMainFile;
     }
 
     private static function makeSystemConfig() {
-        $cacheMainFile = getCacheFile(SYSTEM_PATH.'Data/System/runtime~');
-        if(!$cacheMainFile) {
+        $cacheMainFile = getCacheFile(SYSTEM_PATH . 'Data/System/runtime~');
+        if (!$cacheMainFile || UOKE_DEBUG == true) {
             $systemConfig['cacheName'] = '_config';
-            $cacheFile = getCacheFile(SYSTEM_PATH.'Data/System/runtime~');
-            if($cacheFile == false) {
-                setCacheFile(array(
-                    LOAD_SYSTEM_CONFIG . 'app.php',
-                    LOAD_SYSTEM_CONFIG . 'db.php',
-                    LOAD_SYSTEM_CONFIG . 'cache.php',
-                ), SYSTEM_PATH.'Data/System/runtime~', $systemConfig);
-            }
-            $cacheMainFile = getCacheFile(SYSTEM_PATH.'Data/System/runtime~');
+            setCacheFile(array(
+				LOAD_SYSTEM_CONFIG . 'app.php',
+				LOAD_SYSTEM_CONFIG . 'db.php',
+				LOAD_SYSTEM_CONFIG . 'cache.php',
+					), SYSTEM_PATH . 'Data/System/runtime~', $systemConfig);
+            $cacheMainFile = getCacheFile(SYSTEM_PATH . 'Data/System/runtime~');
         }
         return $cacheMainFile;
     }
@@ -161,10 +160,10 @@ class app {
 
     private static function returnClass($className, $params = [], $config = []) {
         $classKeyName = to_guid_string($className);
-        if(isset(self::$classMap[$classKeyName]) == false && class_exists($className)) {
+        if (isset(self::$classMap[$classKeyName]) == false && class_exists($className)) {
             self::$classMap[$classKeyName] = new $className(...$config);
-		}
-        if($params) {
+        }
+        if ($params) {
             return call_user_func_array(self::$classMap[$classKeyName], $params);
         } else {
             return self::$classMap[$classKeyName];
@@ -178,7 +177,7 @@ class app {
     private static function handleArgs($args) {
         unset($args[0], $args[1]);
         $callArgs = array();
-        foreach($args as $field) {
+        foreach ($args as $field) {
             $callArgs[] = $field;
         }
         return $callArgs;

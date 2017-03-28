@@ -1,5 +1,9 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types = 1);
+
 namespace Factory;
+
 /**
  * 数据库工厂
  * @author Knowsee
@@ -18,14 +22,13 @@ class Db {
     const FIELD_AVG = 'AVG';
     const FIELD_DISTINCT = 'DISTINCT';
 
-
     /**
      * getInstance
      * @param array $tableConfig = [pkey => '', 'cacheTime' => '']
      * cacheTime is not support
      * @return Db
      */
-    public static function getInstance(array $tableConfig = array()) : Db {
+    public static function getInstance(array $tableConfig = array()): Db {
         $key = to_guid_string($tableConfig);
         if (!is_object(self::$instance[$key])) {
             self::$instance[$key] = new self($tableConfig);
@@ -33,16 +36,19 @@ class Db {
         return self::$instance[$key];
     }
 
-
     public function __construct(array $tableConfig = array()) {
         $this->tablePK = isset($tableConfig['pkey']) ? $tableConfig['pkey'] : 'id';
         $this->tableCacheTime = isset($tableConfig['cacheTime']) ? $tableConfig['cacheTime'] : 600;
-        if(!$this->dbLink) {
+        if (!$this->dbLink) {
             $dbConfig = CONFIG();
             $dbClass = $dbConfig['dbDriver'][$dbConfig['db']['driver']];
             $this->dbLink = new $dbClass(CONFIG('db'));
         }
         return $this;
+    }
+
+    public function query($sql) {
+        return $this->runDb()->query($sql);
     }
 
     public function feild($array) {
@@ -63,30 +69,30 @@ class Db {
      * only can get list value inside
      * @return array
      */
-    public function getList(string $key = '', string $returnType = 'string', callable $func = null) : array {
+    public function getList(string $key = '', string $returnType = 'string', callable $func = null): array {
         $returnArray = $this->runDb()->getList();
-        if($key) {
-            foreach($returnArray[1] as $value) {
-                if($returnType == 'string') {
+        if ($key) {
+            foreach ($returnArray[1] as $value) {
+                if ($returnType == 'string') {
                     $returnList[$value[$key]] = $func($value);
                 } else {
                     $returnList[$value[$key]][] = $func($value);
                 }
             }
             $returnArray[1] = $returnList;
-        } elseif($func) {
+        } elseif ($func) {
             $returnArray[1] = array_map($func, $returnArray[1]);
         }
-        return (array)$returnArray;
+        return (array) $returnArray;
     }
 
     /**
      * Fetch One
      * @return array
      */
-    public function getOne() : array {
+    public function getOne(): array {
         $returnArray = $this->runDb()->getOne();
-        return (array)$returnArray;
+        return (array) $returnArray;
     }
 
     /**
@@ -95,10 +101,10 @@ class Db {
      * id need be use 'pkey' field
      * @return array
      */
-    public function getById(string $id) : array {
+    public function getById(string $id): array {
         $this->where(array($this->tablePK => $id));
         $return = $this->runDb()->getOne();
-        return (array)$return;
+        return (array) $return;
     }
 
     /**
@@ -110,19 +116,19 @@ class Db {
     }
 
     /**
-     * Field most
+     * Field List
      * @return mixed
      */
-    public function getField() {
-        return $this->runDb()->getField();
+    public function getFieldList() {
+        return $this->runDb()->getFieldList();
     }
 
     /**
      * Field One
      * @return mixed
      */
-    public function getOneField() {
-        return $this->runDb()->getOneField();
+    public function getFieldOne() {
+        return $this->runDb()->getFieldOne();
     }
 
     /**
@@ -151,11 +157,11 @@ class Db {
      * @param bool $replace
      * @return int
      */
-    public function insert(array $data, bool $return_insert_id = false, bool $replace = false) : int {
-		if(!is_array($data) || !$data)
-		    return 0;
+    public function insert(array $data, bool $return_insert_id = false, bool $replace = false): int {
+        if (!is_array($data) || !$data)
+            return 0;
         $returnArray = $this->runDb()->insert($data, $return_insert_id, $replace);
-        return (int)$returnArray;
+        return (int) $returnArray;
     }
 
     /**
@@ -165,7 +171,8 @@ class Db {
      * @return bool
      */
     public function update(array $data, bool $longWait = false) {
-		if(!is_array($data) || !$data) return false;
+        if (!is_array($data) || !$data)
+            return false;
         return $this->runDb()->update($data, $longWait);
     }
 
@@ -206,7 +213,7 @@ class Db {
      * @param string $tableName
      * @return Db
      */
-    public function table(string $tableName) : Db  {
+    public function table(string $tableName): Db {
         $this->sqlTable = $tableName;
         return $this;
     }
@@ -217,7 +224,7 @@ class Db {
      * $array['FIELD'] = ORDER_TYPE
      * @return mixed
      */
-    public function order(array $array = array()) : Db {
+    public function order(array $array = array()): Db {
         if (!is_array($array) || !$array)
             return $this;
         $this->sqlAction['order'] = $array;
@@ -230,7 +237,7 @@ class Db {
      * $array['FIELD'] = VALUE
      * @return mixed
      */
-    public function where(array $array = array()) : Db {
+    public function where(array $array = array()): Db {
         if (!is_array($array) || !$array)
             return $this;
         $this->sqlAction['where'] = $array;
@@ -239,16 +246,11 @@ class Db {
 
     /**
      * Limit
-     * @param string $string
-     * $array = [START, LIMIT_NUM]
+     * @param $offset, $num
      * @return mixed
      */
-    public function limit(string $string) : Db {
-        list($getNum, $beginNum) = explode(',', $string);
-        if($getNum < 0 || $beginNum  < 0) {
-            return $this;
-        }
-        $this->sqlAction['limit'] = array(intval($getNum), intval($beginNum));
+    public function limit($offset, $num): Db {
+        $this->sqlAction['limit'] = array(intval($offset), intval($num));
         return $this;
     }
 
@@ -257,7 +259,7 @@ class Db {
      * $array['FIELD'] = VALUE
      * @return mixed
      */
-    public function whereOr(array $array = array()) : Db {
+    public function whereOr(array $array = array()): Db {
         if (!is_array($array) || !$array)
             return $this;
         $this->sqlAction['or'] = $array;
@@ -270,7 +272,7 @@ class Db {
      * $array = [GROUPBY_FIELD1, 2, 3, 4]
      * @return mixed
      */
-    public function groupBy(array $array = array()) : Db {
+    public function groupBy(array $array = array()): Db {
         if (!is_array($array) || !$array)
             return $this;
         $this->sqlAction['group'] = $array;
@@ -283,7 +285,7 @@ class Db {
      * ED like where , you can read Uoke\Mysqli\handleSql
      * @return Db
      */
-    public function havingBy(array $array = array()) : Db {
+    public function havingBy(array $array = array()): Db {
         if (!is_array($array) || !$array)
             return $this;
         $this->sqlAction['having'] = $array;
