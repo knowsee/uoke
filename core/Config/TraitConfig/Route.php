@@ -4,16 +4,13 @@ namespace Config\TraitConfig;
 
 trait Route {
 
-    public function routeIndex() {
-        if (file_exists_case(LOAD_CONFIG . 'route.php')) {
-            require LOAD_CONFIG . 'route.php';
-            if (is_array($route)) {
-                return $route;
-            } else {
-                return false;
-            }
-        }
-        return false;
+	public $routeList = [];
+    public function routeInit() {
+		
+        foreach ($this->routeList as $route) {
+			$this->route->addRoute($route[0], $route[1], $route[2]);
+		}
+		
     }
 
 }

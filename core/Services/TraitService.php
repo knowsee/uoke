@@ -10,7 +10,7 @@ trait TraitService {
      * Get DataList
      * @param int $page
      * @param int $num
-     * @param callable $callback
+     * @param callable|null $callback
      * @param array $groupBy
      * @return array [totalNum, List]
      * @throws SError
@@ -123,7 +123,7 @@ trait TraitService {
      * @return result
      */
     public static function DeleteById($id) {
-        return self::getDb()->deleteById();
+        return self::getDb()->deleteById($id);
     }
     
     /**
@@ -147,10 +147,11 @@ trait TraitService {
     /**
      * getByWhere
      * @param array $where
+     * @param array $order
      * @return array
      */
-    public static function getByWhere(array $where) {
-        return self::getDb()->where($where)->getOne();
+    public static function getByWhere(array $where, $order = array()) {
+        return self::getDb()->where($where)->order($order)->getOne();
     }
     
     /**

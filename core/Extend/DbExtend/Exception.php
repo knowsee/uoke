@@ -12,7 +12,7 @@ class Exception extends \Uoke\uError {
 
     public function __construct($message, $errorInfo = [], $code = 0, \Exception $previous = null) {
         $this->errorInfo = $errorInfo;
-        parent::__construct($message, $code, $previous);
+        parent::__construct($message, E_ERROR, $previous);
     }
 
     public function getName() {

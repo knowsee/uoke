@@ -69,7 +69,7 @@ class Db {
      * only can get list value inside
      * @return array
      */
-    public function getList(string $key = '', string $returnType = 'string', callable $func = null): array {
+    public function getList(callable $func = null): array {
         $returnArray = $this->runDb()->getList();
         if ($key) {
             foreach ($returnArray[1] as $value) {

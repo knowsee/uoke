@@ -19,6 +19,12 @@ $_config['defaultAction'] = array(
     ],
     'actionIndex' => 'Index',
 );
+$_config['lang'] = 'zh-cn';
+$_config['langConfig'] = array(
+    'zh-tw',
+    'zh-cn',
+    'en'
+);
 $_config['urlRule'] = array(
     'type' => 3,
     'path' => [
@@ -32,9 +38,7 @@ $_config['urlRule'] = array(
     ]
 );
 $_config['siteUrl'] = array(
-    'default' => 'http://host.ckc.im/',
-    'Ip' => 'http://hostlocal.com/',
-    'Admin' => 'http://adminlocal.com/'
+    'default' => 'http://localhost/',
 );
 $_config['data']['dir'] = 'Data/Upload/';
 $_config['templateDir'] = 'Tmp/'; //{APP_DIR}/core/{YOUR TEMPLATE DIR NAME}}

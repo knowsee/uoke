@@ -99,8 +99,8 @@ function to_guid_string($mix) {
     return md5($mix);
 }
 
-function getArrayTree($treeArray, $Array) {
-    $k = explode('/', $treeArray);
+function getArrayTree($string, $Array) {
+    $k = explode('/', $string);
     switch (count($k)) {
         case 1:
             return $Array[$k[0]];
@@ -126,11 +126,12 @@ function microtimeSum() {
 }
 
 function implodeCatchSource($glue, $source) {
-    if(is_array($source) && count($source) > 1) {
-        return implode($glue, $source);
-    } else {
-        return $source;
-    }
+    $r = implode($glue, $source);
+	if(empty($r)) {
+		return $source;
+	} else {
+		return $r;
+	}
 }
 
 function dstrlen($str) {

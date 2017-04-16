@@ -50,16 +50,16 @@ class uError extends \ErrorException {
             if (IS_CLI) {
                 var_dump($this->errorInfo);
             } else {
-                if ($_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') {
-                    var_dump($this->errorInfo);
-                } else {
-                    var_dump($this->errorInfo);
-                }
+				return $this->toHtml();
             }
         }
     }
 
     public function __toString() {
+		return $this->toHtml();
+    }
+	
+	private function toHtml() {
 		$echo = null;
 		array_walk($this->errorInfo, function($value, $key) use(&$echo) {
 			if(!isset($value['message'])) {
@@ -69,11 +69,10 @@ class uError extends \ErrorException {
 				$html .= '<p>File Info: '.$value['errorFile'].'('.$value['errorLine'].')'.'</p>';
 				$html .= '<pre>Trace: '.var_export($value['errorTrace'], true).'</pre>';
 			}
-			
 			$echo .= $html;
 		});
 		return $echo;
-    }
+	}
 
     private function getName() {
         static $names = [

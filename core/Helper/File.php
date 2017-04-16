@@ -1,5 +1,7 @@
 <?php
+
 namespace Helper;
+
 /**
  * 文件操作助手类
  * 
@@ -9,7 +11,6 @@ namespace Helper;
  * @version 1.0
  */
 class File {
-    
     /*
      * 写入文件
      * 
@@ -23,18 +24,18 @@ class File {
      * @param array $doSetting 参数
      * @return bool or string
      */
-    
+
     public static function writeFile($string, $filename, $fileDir, $doSetting = array()) {
         $setting = array(
             'append' => isset($doSetting['append']) ? $doSetting['append'] : TRUE,
             'read' => isset($doSetting['read']) ? $doSetting['read'] : FALSE,
         );
-        if(!self::checkdir(MAIN_PATH.$fileDir)) {
-            if(!self::makedir(MAIN_PATH.$fileDir)) {
+        if (!self::checkdir(MAIN_PATH . $fileDir)) {
+            if (!self::makedir(MAIN_PATH . $fileDir)) {
                 return FALSE;
             }
         }
-        $fileFullPath = MAIN_PATH.$fileDir. $filename;
+        $fileFullPath = MAIN_PATH . $fileDir . $filename;
         $fileReturn = file_put_contents($fileFullPath, $string, $setting['append'] ? FILE_APPEND : FILE_USE_INCLUDE_PATH);
         if ($fileReturn) {
             if ($setting['read']) {
@@ -45,26 +46,32 @@ class File {
             return FALSE;
         }
     }
-    
-    public static function readFile($fileName, $path) {
-		if(self::checkfile(MAIN_PATH.$path.$fileName)) {
-			return file_get_contents(MAIN_PATH.$path.'/'.$fileName);
-		} else {
-			return '';
-		}
-	}
-    
-	public static function readLine($fileName, $path, $line = 1) {
-		if(self::checkfile(MAIN_PATH.$path.$fileName)) {
-			$fileRes = fopen(MAIN_PATH.$path.$fileName, 'r');
-			$info = fgets($fileRes, 100);
-			fclose($fileRes);
-			return $info;
-		} else {
-			return '';
-		}
-	}
-    
+
+    public static function readFile($fileName, $path = '') {
+        $filePath = MAIN_PATH;
+        if($path) {
+            $filePath = $filePath . $path . '/';
+        }
+        if (self::checkfile($fileName)) {
+            return file_get_contents($fileName);
+        } elseif(self::checkfile($filePath . $fileName)) {
+            return file_get_contents($filePath . $fileName);
+        } else {
+            return '';
+        }
+    }
+
+    public static function readLine($fileName, $path, $line = 1) {
+        if (self::checkfile(MAIN_PATH . $path . $fileName)) {
+            $fileRes = fopen(MAIN_PATH . $path . $fileName, 'r');
+            $info = fgets($fileRes, 100);
+            fclose($fileRes);
+            return $info;
+        } else {
+            return '';
+        }
+    }
+
     /*
      * 检查目录合法性
      * 
@@ -73,7 +80,7 @@ class File {
      * @param string $dir 目录名
      * @return boolen
      */
-    
+
     public static function checkdir($dir) {
         if (is_dir($dir)) {
             return TRUE;
@@ -81,7 +88,7 @@ class File {
             return FALSE;
         }
     }
-    
+
     /*
      * 检查文件合法性
      * 
@@ -90,7 +97,7 @@ class File {
      * @param string $file 文件名（含目录）
      * @return boolen
      */
-    
+
     public static function checkfile($file) {
         if (is_readable($file)) {
             return TRUE;
@@ -98,15 +105,15 @@ class File {
             return FALSE;
         }
     }
-    
+
     public static function deleteFile($fileName, $path) {
-		if(self::checkfile(MAIN_PATH.$path.$fileName)) {
-			return unlink(MAIN_PATH.$path.$fileName);
-		} else {
-			return false;
-		}
-	}
-    
+        if (self::checkfile(MAIN_PATH . $path . $fileName)) {
+            return unlink(MAIN_PATH . $path . $fileName);
+        } else {
+            return false;
+        }
+    }
+
     /*
      * 建立目录
      * 
@@ -115,30 +122,30 @@ class File {
      * @param string $dir 目录名
      * @return boolen
      */
-    
+
     public static function makedir($dir) {
         if (!mkdir($dir, 0755, true)) {
             return FALSE;
         } else {
-			touch($dir . '/index.html');
+            touch($dir . '/index.html');
             return TRUE;
         }
     }
-    
+
     public static function deldir($dir) {
-		if (is_dir($dir)) {
-			$dh=opendir($dir);
-			while ($file=readdir($dh)) {
-				if($file!== "." && $file!== "..") {
-				  $fullpath=$dir."/".$file;
-				  if(!is_dir($fullpath)) {
-					  unlink($fullpath);
-				  } else {
-					  self::deldir($fullpath);
-				  }
-				}
-			}
-			return true;
+        if (is_dir($dir)) {
+            $dh = opendir($dir);
+            while ($file = readdir($dh)) {
+                if ($file !== "." && $file !== "..") {
+                    $fullpath = $dir . "/" . $file;
+                    if (!is_dir($fullpath)) {
+                        unlink($fullpath);
+                    } else {
+                        self::deldir($fullpath);
+                    }
+                }
+            }
+            return true;
         } else {
             return false;
         }

@@ -1,4 +1,5 @@
 <?php
+
 namespace Factory;
 
 use Uoke\Request\Exception,
@@ -37,17 +38,17 @@ class UriFast {
                 return $this->parseUri($this->handlerRouteAction($handler));
         }
     }
-    
+
     public function makeParseUrl($appName, $moduleName, $args = '', $ruleName = '') {
-		list($A, $M) = array_values(array_filter(explode('/', $moduleName)));
-		if(\app::$coreConfig['urlRule']['type'] == 2) {
-			$url = siteUrl(APP_NAME).'index.php/'.$A.'/'.$M.'/';
-		} else {
-			$url = siteUrl(APP_NAME).$A.'/'.$M.'/';
-		}
-		if(!empty($args)) {
-			$url .= '?'.http_build_query($args);
-		}
+        $ActionUrl = implodeCatchSource('/', array_values(array_filter(explode('/', $moduleName))));
+        if (\app::$coreConfig['urlRule']['type'] == 2) {
+            $url = siteUrl($appName) . 'index.php/' .\app::getLang() . '/' . $ActionUrl;
+        } else {
+            $url = siteUrl($appName) . \app::getLang() . '/' . $ActionUrl;
+        }
+        if (!empty($args)) {
+            $url .= '?' . http_build_query($args);
+        }
         return $url;
     }
 
@@ -56,7 +57,7 @@ class UriFast {
     private function routeBase() {
         $dispatcher = \FastRoute\simpleDispatcher(function(\FastRoute\RouteCollector $r) {
             $this->route = $r;
-            $this->routeList();
+            $this->routeInit();
         }, [
             'cacheFile' => MAIN_PATH . 'Data/System/route.cache', /* required */
             'cacheDisabled' => UOKE_DEBUG, /* optional, enabled by default */
@@ -71,32 +72,41 @@ class UriFast {
     }
 
     /**
-     * *	路由指向器
+     * *路由指向器
      * *
      * */
     private function handlerRouteAction($actionHandler) {
         return explode('/', $actionHandler);
     }
 
-    private function routeList() {
-        $routeList = $this->routeIndex();
-        foreach ($routeList as $route) {
-            $this->route->addRoute($route[0], $route[1], $route[2]);
-        }
-    }
-
     private function parseUri($uri) {
-        $uriInfo = parse_url($uri);
-		$pathUrl = substr($uri,(strpos($uriInfo['path'], 'index.php')+strlen('index.php')));
-        if (strlen($pathUrl) < 1 && !IS_CLI) {
-            return $this->defaultUri();
-        } elseif(IS_CLI) {
+		$uriInfo = parse_url($uri);
+		if (IS_CLI) {
             $cli = $this->_Client->getCli();
             return $this->isPathInfo($cli[0]);
-        } else {
-            return $this->isPathInfo($pathUrl);
         }
+        if (\app::$coreConfig['urlRule']['type'] == 3) {
+			return $this->isPathInfo($this->getLangPath($uriInfo['path']));
+        }
+        if (\app::$coreConfig['urlRule']['type'] == 2 && $uF < 1) {
+			$uF = strpos($uriInfo['path'], 'index.php');
+            $uriInfo['path'] = substr($uriInfo['path'], ($uF + strlen('index.php')));
+			return $this->isPathInfo($this->getLangPath($uriInfo['path']));
+        }
+		if (\app::$coreConfig['urlRule']['type'] == 1) {
+			return $this->defaultUri();
+		}
     }
+	
+	private function getLangPath($path) {
+		if(\app::$coreConfig['lang']) {
+            $path = explode('/', $path);
+            \app::setLang($path[1]);
+            return implode('/', array_slice($path, 2));
+        } else {
+			return $path;
+		}
+	}
 
     private function defaultUri() {
         $param = $this->_Client->get();

@@ -158,12 +158,13 @@ class Mysqli implements Db {
         $debug['begin'] = microtime(true);
         try {
             $result = $this->link->query($sql);
+            $debug['code'] = $this->link->errno;
             $debug['end'] = microtime(true);
             $debug['time'] = '[ RunTime:' . floatval($debug['end'] - $debug['begin']) . 's ]';
             $debug['config'] = $this->sqlAction;
             Log::writeLog($debug, 'sql');
             if ($this->link->error) {
-                throw new Exception('Mysql('.$this->getVersion().')'.$this->link->error, $debug, $this->link->errno);
+                throw new Exception('Mysql('.$this->getVersion().')'.$this->link->error, $debug);
             }
         } catch (Exception $e) {
             return false;
