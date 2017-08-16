@@ -1,12 +1,12 @@
 <?php
 
 define('IN_UOKE', TRUE);
-defined('MAIN_PATH') or define('MAIN_PATH', dirname(__FILE__) . DIRECTORY_SEPARATOR);
+defined('MAIN_PATH') or define('MAIN_PATH', dirname(__FILE__) . '/');
 defined('UOKE_DEBUG') or define('UOKE_DEBUG', false);
-define('SYSTEM_PATH', dirname(__FILE__) . DIRECTORY_SEPARATOR);
-defined('LOAD_CONFIG') or define('LOAD_CONFIG', SYSTEM_PATH . 'Config' . DIRECTORY_SEPARATOR);
+define('SYSTEM_PATH', dirname(__FILE__) . '/');
+defined('LOAD_CONFIG') or define('LOAD_CONFIG', SYSTEM_PATH . 'Config/');
 defined('APP_NAME') or define('APP_NAME', 'default');
-define('LOAD_SYSTEM_CONFIG', SYSTEM_PATH . 'Config' . DIRECTORY_SEPARATOR);
+define('LOAD_SYSTEM_CONFIG', SYSTEM_PATH . 'Config/');
 define('ICONV_ENABLE', function_exists('iconv'));
 define('MB_ENABLE', function_exists('mb_convert_encoding'));
 define('EXT_OBGZIP', function_exists('ob_gzhandler'));
@@ -41,20 +41,6 @@ class app {
             $http = self::createObject('\Uoke\Request\HttpException', array(), $e->code());
             $http->showCode($e);
         }
-    }
-    
-    public static function setLang($lang) {
-        $lang = strtolower($lang);
-        if(in_array($lang, self::$coreConfig['langConfig'])) {
-            self::$coreConfig['viewLang'] = $lang;
-        } else {
-            self::$coreConfig['viewLang'] = self::$coreConfig['lang'];
-        }
-        return self::$coreConfig['viewLang'];
-    }
-    
-    public static function getLang() {
-        return self::$coreConfig['viewLang'];
     }
 
     private static function goDefaultPage() {

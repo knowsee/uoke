@@ -146,7 +146,7 @@ class Client {
      * @return boolean whether this is an AJAX (XMLHttpRequest) request.
      */
     public function getIsAjax(): bool {
-        return isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest';
+        return isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest' || $this->get('format') || $this->post('format');
     }
 
     /**
@@ -942,7 +942,7 @@ class Client {
         } else {
             $cookiesList = &$name;
         }
-        return array_walk($name, function($value, $name, $expire) {
+        return array_walk($cookiesList, function($value, $name) use($expire) {
             $cookiesName = $this->getCookieName($name);
             $this->_cookieParams[$cookiesName] = $value;
             return setcookie($cookiesName, $value, $expire, \app::$coreConfig['cookies']['path'], \app::$coreConfig['cookies']['domain'], $this->getIsSecureConnection() == true ? true : false);

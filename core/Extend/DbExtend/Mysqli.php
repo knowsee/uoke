@@ -167,7 +167,8 @@ class Mysqli implements Db {
                 throw new Exception('Mysql('.$this->getVersion().')'.$this->link->error, $debug);
             }
         } catch (Exception $e) {
-            return false;
+            $http = \app::createObject('\Uoke\Request\HttpException', array(), 500);
+            $http->showCode($e->getMessage());
         }
         return $result;
     }

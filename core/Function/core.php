@@ -33,6 +33,27 @@ function siteUrl($siteName = APP_NAME) {
     return CONFIG('siteUrl/'.$siteName);
 }
 
+function toLong($ip) {
+	return sprintf('%u', ip2long($ip));
+}
+
+function isIp($ip) {
+	return ip2long($ip);
+}
+
+function postCurl($url, $data) {
+	$link = new \Curl\Curl();
+	$link->setHeaders(
+		array(
+			'charset' => 'utf-8',
+		)
+	);
+	$link->setOpt(CURLOPT_FOLLOWLOCATION, 1);
+	$link->setOpt(CURLOPT_SSL_VERIFYPEER, false);
+	$result = $link->post($url, $data);
+	return json_decode($result, true);
+}
+
 function setCacheFile($configFile, $cacheFile, $reCache = array()) {
     foreach($configFile as $file) {
         if(file_exists_case($file))require $file;
@@ -99,8 +120,8 @@ function to_guid_string($mix) {
     return md5($mix);
 }
 
-function getArrayTree($string, $Array) {
-    $k = explode('/', $string);
+function getArrayTree($treeArray, $Array) {
+    $k = explode('/', $treeArray);
     switch (count($k)) {
         case 1:
             return $Array[$k[0]];

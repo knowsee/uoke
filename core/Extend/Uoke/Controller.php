@@ -5,8 +5,7 @@ namespace Uoke;
 use Uoke\Request\Client,
     Uoke\Request\Server,
     Helper\Json,
-	Helper\ParseValue,
-	Helper\Lang;
+    Helper\ParseValue;
 
 class Controller {
 
@@ -20,11 +19,9 @@ class Controller {
     protected $client = null;
     protected $server = null;
     protected $array = null;
-    
     public $pageNum = 20;
     public $pageName = 'page';
     public $limitName = 'getNum';
-    
     public $page = 1;
 
     const RETURN_TYPE_HTML = 'html';
@@ -46,14 +43,9 @@ class Controller {
         $this->client = Client::getInstance();
         $this->server = Server::getInstance();
         list($this->page, $this->pageNum) = $this->pageLimitInit();
-		if(\app::$coreConfig['lang']) {
-			Lang::setLangConfig([
-				'lang' => \app::getLang(),
-			]);
-		}
         return $this;
     }
-    
+
     /**
      * 301跳转
      * @param $moduleUrl
@@ -130,10 +122,6 @@ class Controller {
         $this->returnClient['data']['errorDetail'] = $errorDetail;
         $this->showMsg($message);
     }
-	
-	public function lang($name, $fileString = '') {
-		return Lang::get($name, $fileString);
-	}
 
     /**
      * 提示输出
@@ -144,13 +132,14 @@ class Controller {
      */
     public function showMsg($message, $moduleUrl = '', $moduleArgs = '', $second = self::MESSAGE_SECOND) {
         if ($this->returnType == self::RETURN_TYPE_HTML) {
-			header('Content-Type: text/html; charset=' . CHARSET);
+            header('Content-Type: text/html; charset=' . CHARSET);
             $this->view('message', $message);
             $this->view('url', $this->excUrl($moduleUrl, $moduleArgs));
             $this->view('second', $second);
             $this->display('showMessage');
         } elseif ($this->returnType == self::RETURN_TYPE_JSON) {
-			header('Content-Type: application/json; charset=' . CHARSET);
+            header('Content-Type: application/json; charset=' . CHARSET);
+			header("Access-Control-Allow-Origin: *");
             echo Json::encode(array(
                 'message' => $message,
                 'code' => $this->returnClient['code'],
@@ -189,9 +178,9 @@ class Controller {
     }
 
     public static function loadTemplate($filename) {
-		if(!is_file(MAIN_PATH . CONFIG('templateDir') . $filename . '.php')) {
-			exit(CONFIG('templateDir') . $filename . ' doesnt have');
-		}
+        if (!is_file(MAIN_PATH . CONFIG('templateDir') . $filename . '.php')) {
+            exit(CONFIG('templateDir') . $filename . ' doesnt have');
+        }
         require MAIN_PATH . CONFIG('templateDir') . $filename . '.php';
     }
 
@@ -204,61 +193,60 @@ class Controller {
      */
     public function excUrl($moduleName, $args = array(), $ruleName = '') {
         $urlModule = \app::createObject('\Factory\UriFast');
-		$mUrl = $this->handleModule($moduleName);
+        $mUrl = $this->handleModule($moduleName);
         return $urlModule->makeParseUrl($mUrl[0], $mUrl[1], $args, $ruleName);
     }
-    
+
     protected function checkPostData($Data) {
-		if(empty($Data)) {
-			$this->errorWithJson($key . ' Put emtpy need set some');
-		}
+        if (empty($Data)) {
+            $this->errorWithJson($key . ' Put emtpy need set some');
+        }
         array_walk($Data, function($value, $key) {
             if (empty($value) && (!is_string($value) || !is_numeric($value))) {
-                $this->errorWithJson($key . ' Put['.$value.'] need set some');
+                $this->errorWithJson($key . ' Put[' . $value . '] need set some');
             } else {
-				return true;
-			}
+                return true;
+            }
         });
     }
 
     protected function checkData($Data, $NeedType = 'mixed') {
         if (is_string($Data)) {
-			if ($NeedType !== 'mixed' && $this->typeCheck($Data, $NeedType) == false) {
-				return false;
-			} else {
-				return $Data;
-			}
+            if ($NeedType !== 'mixed' && $this->typeCheck($Data, $NeedType) == false) {
+                return false;
+            } else {
+                return $Data;
+            }
         } else {
-			return array_filter($Data, function($value, $key) use($NeedType) {
-				if ($NeedType !== 'mixed' && $this->typeCheck($value, $NeedType) == false) {
-					return false;
-				}
-				return $value;
-			});	
-		}
-        
+            return array_filter($Data, function($value, $key) use($NeedType) {
+                if ($NeedType !== 'mixed' && $this->typeCheck($value, $NeedType) == false) {
+                    return false;
+                }
+                return $value;
+            });
+        }
     }
 
     protected function typeCheck($value, $type) {
         switch ($type) {
             case ParseValue::FLOAT:
-                return is_float((float)$value);
+                return is_float((float) $value);
             case ParseValue::INT:
-                return is_integer((int)$value);
+                return is_integer((int) $value);
             case ParseValue::NUMBER:
                 return is_numeric($value);
             case ParseValue::STRING:
                 return is_string($value);
         }
     }
-    
+
     private function pageLimitInit() {
         $page = $this->client->get($this->pageName, 1);
-        if($page < 1) {
+        if ($page < 1) {
             $page = 1;
         }
         $limit = $this->client->get($this->limitName, $this->pageNum);
-        if($limit < 1) {
+        if ($limit < 1) {
             $limit = 1;
         }
         return array(intval($page), intval($limit));
